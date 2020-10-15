@@ -2,9 +2,12 @@
 # kuras: rain and runoff mm/5min
 # basar: rain mm/5min, runoff  l/h
 
-rainFile <- 'data_green_roof/obs_rain_5min_Neubrandenburg.txt'
-runoffFile <- 'data_green_roof/obs_runoff_5min_Neubrandenburg.txt'
-temperatureFile <- 'data_green_roof/obs_temp_10min_Neubrandenburg.txt'
+obs <- readObservations(
+  rainFile = 'data_green_roof/obs_rain_5min_Neubrandenburg.txt',
+  runoffFile = 'data_green_roof/obs_runoff_5min_Neubrandenburg.txt',
+  temperatureFile = 'data_green_roof/obs_temp_10min_Neubrandenburg.txt')
+
+
 
 readObservations <- function(rainFile, runoffFile, temperatureFile){
   
@@ -47,24 +50,13 @@ readObservations <- function(rainFile, runoffFile, temperatureFile){
                               tz = 'Etc/GMT-1',
                               format = '%Y-%m-%d %H:%M:%S')
   
+  obs <- list(rain = rain, runoff = runoff, temperature = temperature)
   
-  return(list(rain, runoff, temperature))
-  
-  
-
-  
-
-  
+  return(obs)
 }
 
 
 
-
-
-rain <- obs.neu[, c('dateTime', 'rain')]
-runoff <- obs.neu[, c('dateTime', 'runoff')]
-write.table(runoff, 'obs_runoff_5min_Neubrandemburg.txt', quote=FALSE,
-            sep=';', row.names = F)
 
 # convert runoff units to (mm/5mins) and select columns            
 library(dplyr)
