@@ -2,52 +2,64 @@
 # kuras: rain and runoff mm/5min
 # basar: rain mm/5min, runoff  l/h
 
-obs <- readObservations(
+obs.neubrandenburg <- readObservations(
   rainFile = 'data_green_roof/obs_rain_5min_Neubrandenburg.txt',
   runoffFile = 'data_green_roof/obs_runoff_5min_Neubrandenburg.txt',
-  temperatureFile = 'data_green_roof/obs_temp_10min_Neubrandenburg.txt')
+  temperatureFile = 'data_green_roof/obs_temp_10min_Neubrandenburg.txt',
+  tzRain = 'Etc/GMT-1', 
+  tzRunoff = 'Etc/GMT-1', 
+  tzTemperature = 'UTC')
 
 
+tbeg <- as.POSIXct('2015-05-03 12:00:00')
+tend <- as.POSIXct('2015-05-07 00:00:00')
+x1 <- obs.neubrandenburg$rain[obs.neubrandenburg$rain$dateTime >= tbeg &
+                               obs.neubrandenburg$rain$dateTime <= tend, ]
+x2 <- obs.neubrandenburg$runoff[obs.neubrandenburg$runoff$dateTime >= tbeg &
+                               obs.neubrandenburg$runoff$dateTime <= tend, ]
+plot(x1, xlim=c(tbeg, tend),type = 'l')
+lines(x2$dateTime, x2$runoff*100, col='red')
 
-readObservations <- function(rainFile, runoffFile, temperatureFile){
+
+obs.berlin <- readObservations(
+  rainFile = 'data_green_roof/obs_rain_5min_Berlin.txt',
+  runoffFile = 'data_green_roof/obs_runoff_5min_Berlin.txt',
+  temperatureFile = 'data_green_roof/obs_temp_10min_Berlin.txt')
+
+
+readObservations <- function(rainFile, runoffFile, temperatureFile,
+                             tzRain, tzRunoff, tzTemperature){
   
   # load data
   rain <- read.table(rainFile, 
                      sep = ";",  
-                     header = T, 
+                     header = TRUE, 
                      dec = ".", 
                      colClasses = c("character", "numeric"),
                      col.names = c("dateTime", "rain"))
   
   runoff <- read.table(runoffFile, 
                        sep = ";",  
-                       header = T, 
+                       header = TRUE, 
                        dec = ".", 
                        colClasses = c("character", "numeric"),
                        col.names = c("dateTime", "runoff"))
   
   temperature <- read.table(temperatureFile,
                             sep = ';',
-                            header = T ,
-                            colClasses = c('character',
-                                           'character',
-                                           rep('numeric', 5),
-                                           'character'),
-                            col.names = c('STATIONS_ID', 'dateTime', 'QN', 
-                                          'PP_10', 'temperature', 'TM5_10',
-                                          'RF_10', 'TD_10', 'eor'))
-  
-  temperature <- temperature[, c('dateTime', 'temperature')]
+                            header = TRUE,
+                            colClasses = c('character', 'numeric'),
+                            col.names = c('dateTime', 'temperature'))
   
   # format dateTime column
   temperature$dateTime <- as.POSIXct(temperature$dateTime, 
                                      format = '%Y%m%d%H%M',
-                                     tz = 'UTC')
+                                     tz = tzTemperature)
   rain$dateTime <- as.POSIXct(rain$dateTime,
-                              tz = 'Etc/GMT-1',
+                              tz = tzRain,
                               format = '%Y-%m-%d %H:%M:%S')
   runoff$dateTime <- as.POSIXct(runoff$dateTime,
-                              tz = 'Etc/GMT-1',
+                              tz = tzRunoff,
                               format = '%Y-%m-%d %H:%M:%S')
   
   obs <- list(rain = rain, runoff = runoff, temperature = temperature)
