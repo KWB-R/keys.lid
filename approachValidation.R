@@ -1,135 +1,98 @@
 # original units runoff:
-# kuras: rain and runoff mm/5min
-# basar: rain mm/5min, runoff  l/h
+# kuras (Neubrandenburg): rain and runoff mm/5min, area = 101 m2
+# basar (Berlin): rain mm/5min, runoff  l/h, area = 194 m2
 
 obs.neubrandenburg <- readObservations(
-  rainFile = 'data_green_roof/obs_rain_5min_Neubrandenburg.txt',
-  runoffFile = 'data_green_roof/obs_runoff_5min_Neubrandenburg.txt',
-  temperatureFile = 'data_green_roof/obs_temp_10min_Neubrandenburg.txt',
-  tzRain = 'Etc/GMT-1', 
-  tzRunoff = 'Etc/GMT-1', 
-  tzTemperature = 'UTC')
-
-
-tbeg <- as.POSIXct('2015-05-03 12:00:00')
-tend <- as.POSIXct('2015-05-07 00:00:00')
-x1 <- obs.neubrandenburg$rain[obs.neubrandenburg$rain$dateTime >= tbeg &
-                               obs.neubrandenburg$rain$dateTime <= tend, ]
-x2 <- obs.neubrandenburg$runoff[obs.neubrandenburg$runoff$dateTime >= tbeg &
-                               obs.neubrandenburg$runoff$dateTime <= tend, ]
-plot(x1, xlim=c(tbeg, tend),type = 'l')
-lines(x2$dateTime, x2$runoff*100, col='red')
-
+  subfolder = 'data_green_roof',
+  rainFile = 'obs_rain_5min_Neubrandenburg.txt',
+  runoffFile = 'obs_runoff_5min_Neubrandenburg.txt',
+  temperatureFile = 'obs_temp_10min_Neubrandenburg.txt',
+  dateTimetz = 'Etc/GMT-1', 
+  dateTimeformat = '%Y-%m-%d %H:%M:%S',
+  to_mmperhour = list(rain=1/(5/60), runoff=1/(5/60)))
 
 obs.berlin <- readObservations(
-  rainFile = 'data_green_roof/obs_rain_5min_Berlin.txt',
-  runoffFile = 'data_green_roof/obs_runoff_5min_Berlin.txt',
-  temperatureFile = 'data_green_roof/obs_temp_10min_Berlin.txt')
+  subfolder = 'data_green_roof',
+  rainFile = 'obs_rain_5min_Berlin.txt',
+  runoffFile = 'obs_runoff_5min_Berlin.txt',
+  temperatureFile = 'obs_temp_10min_Berlin.txt',
+  dateTimetz = 'Etc/GMT-1', 
+  dateTimeformat = '%Y-%m-%d %H:%M:%S',
+  to_mmperhour = list(rain=1, runoff=1/194))
+
+mod.neubrandenburg <- readPredictedRunoff(
+  subfolder = 'models_green_roof',
+  to_mmperhour =  3600/101)
 
 
-readObservations <- function(rainFile, runoffFile, temperatureFile,
-                             tzRain, tzRunoff, tzTemperature){
+readObservations <- function(subfolder, rainFile, runoffFile, temperatureFile,
+                             dateTimetz, dateTimeformat,
+                             to_mmperhour){
   
-  # load data
-  rain <- read.table(rainFile, 
-                     sep = ";",  
-                     header = TRUE, 
-                     dec = ".", 
-                     colClasses = c("character", "numeric"),
-                     col.names = c("dateTime", "rain"))
+  # make file paths
+  filepaths <- sapply(X = c(rainFile, runoffFile, temperatureFile),
+                      FUN = function(x){
+                        file.path(subfolder, x)})
   
-  runoff <- read.table(runoffFile, 
-                       sep = ";",  
-                       header = TRUE, 
-                       dec = ".", 
-                       colClasses = c("character", "numeric"),
-                       col.names = c("dateTime", "runoff"))
+  # read data
+  x <- lapply(X = filepaths,
+              FUN = read.table,
+              sep = ";",  
+              header = TRUE, 
+              dec = ".", 
+              colClasses = c("character", "numeric"))
   
-  temperature <- read.table(temperatureFile,
-                            sep = ';',
-                            header = TRUE,
-                            colClasses = c('character', 'numeric'),
-                            col.names = c('dateTime', 'temperature'))
+  names(x) <- c('rain', 'runoff', 'temperature')
   
-  # format dateTime column
-  temperature$dateTime <- as.POSIXct(temperature$dateTime, 
-                                     format = '%Y%m%d%H%M',
-                                     tz = tzTemperature)
-  rain$dateTime <- as.POSIXct(rain$dateTime,
-                              tz = tzRain,
-                              format = '%Y-%m-%d %H:%M:%S')
-  runoff$dateTime <- as.POSIXct(runoff$dateTime,
-                              tz = tzRunoff,
-                              format = '%Y-%m-%d %H:%M:%S')
+  # format dateTime
+  for(i in seq_along(x)){
+    x[[i]]$dateTime <- as.POSIXct(
+      x[[i]]$dateTime,
+      format = dateTimeformat,
+      tz = dateTimetz)
+  }
+    
+
+  # convert rainfall and runoff units to mm/hour
+  x$rain$rain <- x$rain$rain * to_mmperhour$rain
+  x$runoff$runoff <- x$runoff$runoff * to_mmperhour$runoff
   
-  obs <- list(rain = rain, runoff = runoff, temperature = temperature)
+  return(x)
+}
+
+
+readPredictedRunoff <- function(subfolder, to_mmperhour){
   
-  return(obs)
+  mod <- read.table(file.path(subfolder, 'mod_runoff_5min_Neubrandenburg.txt'), 
+                    skip=4, 
+                    header=FALSE, 
+                    colClasses=c("character", "character", "numeric"),
+                    col.names=c("date", "time", "runoff"))
+  
+  mod$dateTime <- as.POSIXct(paste(mod$date, mod$time),
+                             format = '%m/%d/%Y %H:%M:%S', 
+                             tz ='Etc/GMT-1')
+  
+  mod <- mod[, c('dateTime', 'runoff')]
+  
+  mod$runoff <- mod$runoff * to_mmperhour
+  
+  return(mod)
 }
 
 
 
-
-# convert runoff units to (mm/5mins) and select columns            
-library(dplyr)
-obs.neu$dateTime <- as.POSIXct(obs.neu$dateTime, 
-                               format="%Y-%m-%d %H:%M:%S",
-                               tz="Etc/GMT-1")
-obs.neu <- mutate(obs.neu, RO=runoff/(5*60), 
-                  RO_rain = rain + RO)  
-obs.neu <- select(obs.neu, dateTime, rain, RO, RO_rain)
+tbeg <- as.POSIXct('2015-06-01 00:00:00', format='%Y-%m-%d %H:%M:%S', tz='Etc/GMT-1')
+tend <- as.POSIXct('2015-07-30 00:00:00', format='%Y-%m-%d %H:%M:%S', tz='Etc/GMT-1')
+plot(x$rain$dateTime, x$rain$rain, type='l', xlim=c(tbeg, tend))
+lines(x$runoff$dateTime, x$runoff$runoff, col='blue')
 
 
 # montly patterns in reality vs. monthly patterns in SWMM
 
 # green roof berlin, neubrandenburg, beijing
 
-# load monitoring
-readRunoff
 
-readRainfall
-
-readTemperature
-
-aggregate
-
-
-correlate
-
-
-
-
-
-# grab monitoring data
-setwd("Y:/WWT_Department/Projects/KEYS/Data-Work packages/WP1_sponge_city_elements/LIDmodels/greenRoof/Timeseries/")
-path <- "Y:/SUW_Department/Projects/KURAS/Data-Work packages/AP3_2_Oberflaechenwasser/Monitoring/Gruendach/03_Daten_Ergebnisse/01_Hydraulik/04_KalibrierteDaten/Kalibrierte_Regen_Abflussdaten.csv"
-
-obs <- tbl_df(read.table(path, 
-                         header=FALSE, 
-                         skip=1, 
-                         colClasses=c("character", "character", rep("numeric", times=5)),
-                         col.names=c("date", "time", "rain","tipKD", "tipGD", "roKD", "roGD")))
-
-obs %>%
-  mutate(dateTime=as.POSIXct(paste(obs$date, obs$time), format="%Y-%m-%d %H:%M:%S", tz="Etc/GMT-1"),
-         RO=roGD/(5*60),
-         cumRO=cumsum(RO)) %>%
-  select(dateTime, RO, cumRO, rain) -> obs
-
-# grab modeled data
-setwd("Y:/WWT_Department/Projects/KEYS/Data-Work packages/WP1_sponge_city_elements/LIDmodels/greenRoof/output")
-
-mod <- tbl_df(read.table("mod_neubrandenburg.txt", skip=4, header=FALSE, 
-                         colClasses=c("character", "character", "numeric"),
-                         col.names=c("date", "time", "runoff")))
-
-mod %>%
-  mutate(dateTime=as.POSIXct(paste(mod$date, mod$time),
-                             format="%m/%d/%Y %H:%M:%S", 
-                             tz="Etc/GMT-1"),
-         RO=runoff/(0.0101*10000),
-         cumRO=cumsum(RO)) %>%
-  select(dateTime, RO, cumRO) -> mod
 
 
 

@@ -65,8 +65,10 @@ source("BaSaR-Funktionen.R")
     obs <- tbl_df(read.table(path, 
                              header=FALSE, 
                              skip=1, 
-                             colClasses=c("character", "character", rep("numeric", times=5)),
-                             col.names=c("date", "time", "rain","tipKD", "tipGD", "roKD", "roGD")))
+                             colClasses=c("character", "character", 
+                                          rep("numeric", times=5)),
+                             col.names=c("date", "time", "rain",
+                                         "tipKD", "tipGD", "roKD", "roGD")))
     
     obs %>%
       mutate(dateTime=as.POSIXct(paste(obs$date, obs$time), format="%Y-%m-%d %H:%M:%S", tz="Etc/GMT-1"),
