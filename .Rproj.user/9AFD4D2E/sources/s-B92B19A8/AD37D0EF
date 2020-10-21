@@ -1,0 +1,24 @@
+{
+    "id": "AD37D0EF",
+    "path": "C:/kwb/KEYS/WP1_sponge_city_elements/_DataAnalysis/LIDsensitivity/approachValidation.R",
+    "project_path": "approachValidation.R",
+    "type": "r_source",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1602768625390.0,
+    "source_on_save": false,
+    "relative_order": 3,
+    "properties": {
+        "cursorPosition": "214,6",
+        "scrollLine": "195"
+    },
+    "folds": "114|43|144|0|\n243|63|290|0|\n292|39|304|0|\n306|27|340|0|\n342|26|354|0|\n366|1|435|0|\n",
+    "lastKnownWriteTime": 1603278784,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1603278784094,
+    "read_only": false,
+    "read_only_alternatives": []
+}

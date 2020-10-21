@@ -140,7 +140,8 @@ seq <- seq.POSIXt(ISOdate(2015,4,25,00,00,tz="UTC"),
                   ISOdate(2015,4,28,00,00,tz="UTC"),
                   by="5 min")
 # runoff results of the green roof
-runoff <- rainData_r[which(rainData_r$DateTime == head(seq,1)) : which(rainData_r$DateTime == tail(seq,1)), c(1, 3, 6, 7)]
+runoff <- rainData_r[which(rainData_r$DateTime == head(seq,1)) : 
+                       which(rainData_r$DateTime == tail(seq,1)), c(1, 3, 6, 7)]
 
 #ThS <- 90 # Soil Thickness
 Por <- 0.6 # Porosity
@@ -795,7 +796,7 @@ for (i in 1:length(cal_rain_events$tBeg)) {
        col="blue",
        ylim=c(0,0.5),
        xlab="Zeit",ylab="Abfluss [l/5 min]/Niederschlag[mm/5min]",
-       main="Validierung des Gründachabflusses") 
+       main="Validierung des Gr?ndachabflusses") 
   lines(runoff_sim[[i]]$sim~runoff_sim[[i]]$DateTime,
         col="red")
   legend("topright",legend = c("Abflussmessung","Modell","Niederschlag"),col = c("blue","red","black"),lty = 1)

@@ -15,8 +15,8 @@ START_DATE           01/21/2019
 START_TIME           16:00:00
 REPORT_START_DATE    01/21/2019
 REPORT_START_TIME    16:00:00
-END_DATE             06/13/2019
-END_TIME             07:50:00
+END_DATE             02/09/2020
+END_TIME             23:55:00
 SWEEP_START          01/01
 SWEEP_END            12/31
 DRY_DAYS             0
@@ -43,20 +43,20 @@ THREADS              1
 ;;Data Source    Parameters
 ;;-------------- ----------------
 TEMPERATURE 
-DRY_ONLY         YES
+DRY_ONLY         NO
 
 [TEMPERATURE]
 ;;Data Element     Values     
-FILE               "temp.txt"
+FILE               "c:\kwb\KEYS\WP1_sponge_city_elements\_DataAnalysis\LIDsensitivity\models_green_roof\obs_temp_daily_Berlin.txt"
 WINDSPEED FILE    
-SNOWMELT           0 0.5 0.6 0.0 50.0 0.0
+SNOWMELT           0 0.5 0.6 18 52.5 8
 ADC IMPERVIOUS     1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
 ADC PERVIOUS       1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
 
 [RAINGAGES]
 ;;Name           Format    Interval SCF      Source    
 ;;-------------- --------- ------ ------ ----------
-BlnX             VOLUME    0:05     1.0      FILE       "rain.txt"       BlnX       MM   
+BlnX             VOLUME    0:05     1.0      FILE       "c:\kwb\KEYS\WP1_sponge_city_elements\_DataAnalysis\LIDsensitivity\models_green_roof\obs_rain_5min_Berlin.txt" BlnX       MM   
 
 [SUBCATCHMENTS]
 ;;Name           Rain Gage        Outlet           Area     %Imperv  Width    %Slope   CurbLen  SnowPack        

@@ -16,7 +16,7 @@ START_TIME           14:25:00
 REPORT_START_DATE    09/12/2014
 REPORT_START_TIME    14:25:00
 END_DATE             12/07/2015
-END_TIME             00:00:00
+END_TIME             10:15:00
 SWEEP_START          01/01
 SWEEP_END            12/31
 DRY_DAYS             0
@@ -43,20 +43,20 @@ THREADS              1
 ;;Data Source    Parameters
 ;;-------------- ----------------
 TEMPERATURE 
-DRY_ONLY         YES
+DRY_ONLY         NO
 
 [TEMPERATURE]
 ;;Data Element     Values     
-FILE               "C:\kwb\KEYS\WP1_sponge_city_elements\_DataAnalysis\LIDmodels\greenRoof\Timeseries\neubrand_temp_evap_daily_2014-2016.txt"
+FILE               "c:\kwb\KEYS\WP1_sponge_city_elements\_DataAnalysis\LIDsensitivity\models_green_roof\obs_temp_daily_Neubrandenburg.txt"
 WINDSPEED MONTHLY  16 13 15 13 12.5 12.3 10.5 11 11 13 13 16
-SNOWMELT           0 0.5 0.6 18 53.5 -8
+SNOWMELT           0 0.5 0.6 18 53.5 8
 ADC IMPERVIOUS     1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
 ADC PERVIOUS       1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
 
 [RAINGAGES]
 ;;Name           Format    Interval SCF      Source    
 ;;-------------- --------- ------ ------ ----------
-RainGage         VOLUME    0:05     1        FILE       "C:\kwb\KEYS\WP1_sponge_city_elements\_DataAnalysis\LIDmodels\greenRoof\Timeseries\neubrand_rain_5min_2014-2015.txt" APWXI      MM   
+RainGage         VOLUME    0:05     1        FILE       "c:\kwb\KEYS\WP1_sponge_city_elements\_DataAnalysis\LIDsensitivity\models_green_roof\obs_rain_5min_Neubrandenburg.txt" APWXI      MM   
 
 [SUBCATCHMENTS]
 ;;Name           Rain Gage        Outlet           Area     %Imperv  Width    %Slope   CurbLen  SnowPack        
