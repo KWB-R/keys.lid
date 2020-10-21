@@ -80,9 +80,11 @@ mod.berlin$rain_runoff$TmaxADWP <- TmaxADWP(mod.berlin)
 # monthly patterns in reality vs. monthly patterns in SWMM
 obs.neubrandenburg.monthly <- monthlyRunoffCoeff(obs.neubrandenburg)
 obs.berlin.monthly <- monthlyRunoffCoeff(obs.berlin)
+mod.neubrandenburg.monthly <- monthlyRunoffCoeff(mod.neubrandenburg)
+mod.berlin.monthly <- monthlyRunoffCoeff(mod.berlin)
 
-
-summary(lm(runoff ~ rain + TmaxADWP, data = obs.neubrandenburg.monthly))
+summary(lm(runoff ~ rain + meanTmaxADWP, data = obs.neubrandenburg.monthly))
+summary(lm(runoff ~ rain + meanTmaxADWP, data = mod.neubrandenburg.monthly))
 
 
 
@@ -196,7 +198,7 @@ readPredictions <- function(subfolder, rainFile, runoffFile, temperatureFile,
                                 Tmax = mod$TmaxTminDay$Tmax,
                                 Tmin = mod$TmaxTminDay$Tmin)
   
-  # make continuous temperature data based on SWMM's approach. see
+  # make continuous temperature series following SWMM's approach. see
   # SWMM hydrological reference manual, chapter 2.4
   data <- mod$TmaxTminDay
   tAxis <- mod$runoff$dateTime
@@ -341,48 +343,34 @@ TmaxADWP <- function(data){
   rawrain <- data$rain
   rawtemperature <- data$temperature
   
-  x <- sapply(X = seq_len(nrow(events)),
-              FUN = function(i){
-                
-                tBeg <- events$tBeg[i]
-                rainBefore <- rawrain[rawrain$dateTime < tBeg, ]
-                indexRain <- which(rainBefore[[2]]>0)
-                
-                if(length(indexRain) > 0){
-                  
-                  rainBefore <- rainBefore[indexRain, ]
-                  tEndPrev <- max(rainBefore$dateTime)
-                  
-                  # select temperature data for time period between tEndPrev and tBeg
-                  ttsel <- rawtemperature[rawtemperature$dateTime >= tEndPrev & 
-                                            rawtemperature$dateTime <= tBeg, ]
-                  
-                  TmaxADWP <- max(ttsel$temperature, na.rm=TRUE) 
-                  
-                } else {
-                  
-                  TmaxADWP <- NA
-                  
-                }
-                
-                return(TmaxADWP)
-              })
+  x <- sapply(
+    X = seq_len(nrow(events)),
+    FUN = function(i){
+      
+      tBeg <- events$tBeg[i]
+      rainBefore <- rawrain[rawrain$dateTime < tBeg, ]
+      indexRain <- which(rainBefore[[2]]>0)
+      
+      if(length(indexRain) > 0){
+        
+        rainBefore <- rainBefore[indexRain, ]
+        tEndPrev <- max(rainBefore$dateTime)
+        
+        # select temperature data for time period between tEndPrev and tBeg
+        ttsel <- rawtemperature[rawtemperature$dateTime >= tEndPrev & 
+                                  rawtemperature$dateTime <= tBeg, ]
+        
+        TmaxADWP <- max(ttsel$temperature, na.rm=TRUE) 
+        
+      } else {
+        
+        TmaxADWP <- NA
+      }
+      
+      return(TmaxADWP)
+    })
   
   return(x)
-}
-
-TmaxDay <- function(data){
-  
-  dates <- as.Date(data$rain_runoff$tBeg)
-  rawtemperature <- data$temperature
-  
-  Tmax  <- sapply(
-    X = seq_along(dates),
-    FUN  = function(i){
-      return(rawtemperature[rawtemperature$date == dates[i], 'Tmax'])
-    })
-
-  return(Tmax)  
 }
 
 monthlyRunoffCoeff <- function(data){
