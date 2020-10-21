@@ -22,6 +22,9 @@ obs.berlin <- readObservations(
 
 # load modeled runoff, together with rainfall and temperature used in the model,
 # transforming to mm/hour
+# since SWMM uses daily Tmax, Tmin and a sinusoidal function to produce continuous
+# T data, readPredictions does the same using the same formulas given in SWMM's
+# reference manual
 mod.neubrandenburg <- readPredictions(
   subfolder = 'models_green_roof',
   rainFile = 'obs_rain_5min_Neubrandenburg.txt',
@@ -29,7 +32,11 @@ mod.neubrandenburg <- readPredictions(
   temperatureFile = 'obs_temp_daily_Neubrandenburg.txt',
   dateTimetz = 'Etc/GMT-1',
   dateTimeformat = '%Y-%m-%d %H:%M',
-  to_mmperhour = list(rain = 1/(5/60), runoff = 3600/101))
+  to_mmperhour = list(rain = 1/(5/60), runoff = 3600/101),
+  parTcontinuous = list(longitude = -13.26,
+                        standardMeridian = -15,
+                        latitude = 53.56,
+                        TmaxDay0 = 17))
   
 mod.berlin <- readPredictions(
   subfolder = 'models_green_roof',
@@ -38,7 +45,11 @@ mod.berlin <- readPredictions(
   temperatureFile = 'obs_temp_daily_Berlin.txt',
   dateTimetz = 'Etc/GMT-1',
   dateTimeformat = '%Y-%m-%d %H:%M',
-  to_mmperhour = list(rain = 1/(5/60), runoff = 3600/194))
+  to_mmperhour = list(rain = 1/(5/60), runoff = 3600/194),
+  parTcontinuous = list(longitude = -13.41,
+                        standardMeridian = -15,
+                        latitude = 52.50,
+                        TmaxDay0 = 9))
 
 # make joint rainfall-runoff events (observed)
 obs.neubrandenburg$rain_runoff <- makeRainfallRunoffEvents(
@@ -58,23 +69,22 @@ mod.berlin$rain_runoff <- makeRainfallRunoffEvents(
   rainfalldata = mod.berlin$rain,
   runoffdata = mod.berlin$runoff)
 
-# compute max. temperature in ADWP* (observed)
-# antecedent dry weather period
+# compute max. temperature in antecedent dry weather period (ADWP) (observed)
 obs.neubrandenburg$rain_runoff$TmaxADWP <- TmaxADWP(obs.neubrandenburg)
 obs.berlin$rain_runoff$TmaxADWP <- TmaxADWP(obs.berlin)
 
-# add max. temperature in ADWP (modeled)
-mod.neubrandenburg$rain_runoff$TmaxDay <- TmaxDay(mod.neubrandenburg)
-mod.berlin$rain_runoff$TmaxDay <- TmaxDay(mod.berlin)
+# compute max. temperature in antecedent dry weather period (ADWP) (modeled)
+mod.neubrandenburg$rain_runoff$TmaxADWP <- TmaxADWP(mod.neubrandenburg)
+mod.berlin$rain_runoff$TmaxADWP <- TmaxADWP(mod.berlin)
 
 # monthly patterns in reality vs. monthly patterns in SWMM
-reg.obs <- lm(runoff ~ rain + TmaxADWP,
-          data = obs.neubrandenburg$rain_runoff)
-summary(reg.obs)
+obs.neubrandenburg.monthly <- monthlyRunoffCoeff(obs.neubrandenburg)
+obs.berlin.monthly <- monthlyRunoffCoeff(obs.berlin)
 
-reg.mod <- lm(runoff ~ rain + TmaxDay,
-          data = mod.neubrandenburg$rain_runoff)
-summary(reg.mod)
+
+summary(lm(runoff ~ rain + TmaxADWP, data = obs.neubrandenburg.monthly))
+
+
 
 
 
@@ -145,8 +155,8 @@ readObservations <- function(subfolder, rainFile, runoffFile, temperatureFile,
 }
 
 readPredictions <- function(subfolder, rainFile, runoffFile, temperatureFile,
-                            dateTimetz, dateTimeformat,
-                            to_mmperhour){
+                            dateTimetz, dateTimeformat, to_mmperhour,
+                            parTcontinuous){
   
   mod <- list()
   
@@ -186,60 +196,81 @@ readPredictions <- function(subfolder, rainFile, runoffFile, temperatureFile,
                                 Tmax = mod$TmaxTminDay$Tmax,
                                 Tmin = mod$TmaxTminDay$Tmin)
   
-  # make continuous temperature data based on SWMM's approach
+  # make continuous temperature data based on SWMM's approach. see
   # SWMM hydrological reference manual, chapter 2.4
+  data <- mod$TmaxTminDay
+  tAxis <- mod$runoff$dateTime
   
-  mod$temperature <- #******************************
+  # longitude correction of local clock time
+  dtlong <- 4*(parTcontinuous$longitude - 
+                 parTcontinuous$standardMeridian)
   
-  
+  mod$temperature <- data.frame(dateTime = mod$runoff$dateTime,
+                                temperature = NA)
+  mod$temperature$temperature <- sapply(
+    X = seq_along(tAxis),
+    FUN = function(i){
+      
+      # grab date, Tmin and Tmax
+      timei <- tAxis[i]
+      datei <- as.Date(timei)
+      houri <- as.numeric(format(timei, format = '%H'))
+      
+      # grab current day's Tmin and Tmax
+      Tmin <- data$Tmin[data$date == datei]
+      Tmax <- data$Tmax[data$date == datei]
+      
+      # difference between the previous day’s maximum temperature and 
+      # the current day’s minimum temperature.
+      TmaxPrev <- ifelse(i == 1, 
+                         parTcontinuous$TmaxDay0, 
+                         data[data$date == as.Date(
+                           format(timei, format='%Y-%m-%d')) - 1, 
+                           'Tmax'])
+      dt1 <- TmaxPrev - Tmin
+      
+      # earth's declination, in radians (D = julian day)
+      D <- as.numeric(format(datei, format = '%j'))
+      delta <- 23.45*pi/180*cos(2*pi/365*(172 - D))
+      
+      # hour angle of the sun (phi = latitude)
+      hasun <- (12/pi)*acos(-tan(delta) * tan(parTcontinuous$latitude))
+      
+      # sunrise and sunset times
+      hsr <- 12 - hasun + dtlong/60
+      hss <- 12 + hasun + dtlong/60
+      
+      # hours at which Tmin and Tmax occur
+      hourTmin = hsr
+      hourTmax = hss - 3
+      
+      # temperature at timei
+      if(houri < hourTmin){
+        
+        Ti <- Tmin + dt1/2*sin((pi*(hourTmin - houri))/(hourTmin + 24 - hourTmax))
+        
+      } else {
+        
+        if((hourTmin <= houri) & (houri <= hourTmax)){
+          
+          Ti <- (Tmin + Tmax)/2 + 
+            (Tmax - Tmin)/2*sin(
+              pi*((hourTmax + hourTmin)/2 - houri) /
+                (hourTmax - hourTmin))
+          
+        } else {
+          
+          Ti <- Tmax - (Tmax - Tmin)/2*sin(
+            pi*(houri - hourTmax)/(hourTmin + 24 - hourTmax))
+        }
+      }
+      
+      return(Ti)
+      
+    })
   
   return(mod)
 }
-
-# for modeled values: compute sinusoidal temperature course based on Tmax and Tmin
-
-data = mod
-longitude = -13
-standardMeridian = -15
-latitude = 53.5
-
-
-  
-# grab date, Tmin and Tmax
-  data <- mod$TmaxTminDay
-  date <- data$date[i]
-  Tmin <- data$Tmin[i]
-  Tmax <- data$Tmax[i]
-  
-  # longitude correction of local clock time
-  dtlong <- 4*(longitude - standardMeridian)
-  
-  # earth's declination, in radians (D = julian day)
-  D <- as.numeric(format(date, format = '%j'))
-  delta <- 23.45*pi/180*cos(2*pi/365*(172 - D))
-  
-  # hour angle of the sun (phi = latitude)
-  hasun <- (12/pi)*acos(-tan(delta) * tan(latitude))
-  
-  # sunrise and sunset times
-  hsr <- 12 - hasun + dtlong/60
-  hss <- 12 + hasun + dtlong/60
-  
-  # hours at whch Tmin and Tmax occur
-  hourTmin = hsr
-  hourTmax = hss - 3
-  
-  # temperature at any hour 
-  if(){
-    
-  } else {
-    
-  }
-  
-  
-  
-  
-
 
 makeRainfallRunoffEvents <- function(rainfalldata, runoffdata){
   
@@ -354,6 +385,26 @@ TmaxDay <- function(data){
   return(Tmax)  
 }
 
+monthlyRunoffCoeff <- function(data){
+  
+  x <- data$rain_runoff[, c('tBeg', 'rain', 'runoff', 'TmaxADWP')]
+  x <- na.omit(x)
+  x$yearMonth <- as.character(format(x$tBeg, format = '%Y%m'))
+  
+  x.monthly <- data.frame(
+    aggregate(x = x[, c('rain', 'runoff')], 
+              by = list(x$yearMonth), 
+              FUN = sum),
+    meanTmaxADWP = aggregate(x = x[, 'TmaxADWP'],
+                             by = list(x$yearMonth),
+                             FUN = mean)[, 2])
+  
+  names(x.monthly)[1] <- 'yearMonth'
+  
+  x.monthly$runCoeff <- x.monthly$runoff/x.monthly$rain
+  
+  return(x.monthly)
+}
 
 
 
@@ -492,4 +543,17 @@ plot(runoffdata$dateTime, runoffdata$runoff, xlim=c(tbeg, tend), type='l',
 axis(1, at = xax, labels = format(xax, format = '%m-%d'), las=2)
 lines(rainfalldata$dateTime, rainfalldata$rain, col='blue')
 lines(rainrunoff$dateTime, rainrunoff$rainrunoff, col='red')
+
+
+par(mfcol=c(2, 1), mar=c(3, 3, 1, 1))
+x <- mod.neubrandenburg$temperature
+tbeg <- as.POSIXct('2014-09-12 15:00:00')
+tend <- as.POSIXct('2015-12-07 20:00:00')
+plot(x$dateTime, x$temperature, xlim=c(tbeg, tend), type = 'l')
+
+x <- mod.berlin$temperature
+tbeg <- as.POSIXct('2019-01-21 17:00:00')
+tend <- as.POSIXct('2020-02-10 01:00:00')
+plot(x$dateTime, x$temperature, xlim=c(tbeg, tend), type = 'l')
+
 
