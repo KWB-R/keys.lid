@@ -9,7 +9,8 @@ obs.neubrandenburg <- readObservations(
   temperatureFile = 'obs_temperature_10min_Neubrandenburg.txt',
   dateTimetz = 'Etc/GMT-1', 
   dateTimeformat = '%Y-%m-%d %H:%M:%S',
-  to_mmperhour = list(rain=1/(5/60), runoff=1/(5/60)))
+  to_mmperhour = list(rain=1/(5/60), runoff=1/(5/60)), 
+  NAval = list(rain = -999, runoff = -999, temperature = -999))
 
 obs.berlin <- readObservations(
   subfolder = 'data_green_roof',
@@ -18,9 +19,10 @@ obs.berlin <- readObservations(
   temperatureFile = 'obs_temperature_10min_Berlin.txt',
   dateTimetz = 'Etc/GMT-1', 
   dateTimeformat = '%Y-%m-%d %H:%M:%S',
-  to_mmperhour = list(rain=1/(5/60), runoff=1/(5/60)))
+  to_mmperhour = list(rain=1/(5/60), runoff=1/(5/60)),
+  NAval = list(rain = -999, runoff = -999, temperature = -999))
 
-# load modeled runoff, together with rainfall and temperature used in the model,
+# load modeled runoff, together with rainfall and temperature used as model inputs,
 # transforming to mm/hour
 # since SWMM uses daily Tmax, Tmin and a sinusoidal function to produce continuous
 # T data, readPredictions does the same using the same formulas given in SWMM's
@@ -28,7 +30,7 @@ obs.berlin <- readObservations(
 mod.neubrandenburg <- readPredictions(
   subfolder = 'models_green_roof',
   rainFile = 'obs_rain_5min_Neubrandenburg.txt',
-  runoffFile = 'neubrand.out',
+  runoffFile = 'neubrand.out', # SWMM output file
   temperatureFile = 'obs_temp_daily_Neubrandenburg.txt',
   dateTimetz = 'Etc/GMT-1',
   dateTimeformat = '%Y-%m-%d %H:%M',
@@ -41,7 +43,7 @@ mod.neubrandenburg <- readPredictions(
 mod.berlin <- readPredictions(
   subfolder = 'models_green_roof',
   rainFile = 'obs_rain_5min_Berlin.txt',
-  runoffFile = 'bbr18.out',
+  runoffFile = 'bbr18.out', # SWMM output file
   temperatureFile = 'obs_temp_daily_Berlin.txt',
   dateTimetz = 'Etc/GMT-1',
   dateTimeformat = '%Y-%m-%d %H:%M',
@@ -122,9 +124,11 @@ obs.events <- rrEvents.neu %>%
 
 sim <- swmmr::run_swmm(inp = 'models_green_roof/neubrand.INP')
 
-readObservations <- function(subfolder, rainFile, runoffFile, temperatureFile,
+readObservations <- function(subfolder, 
+                             rainFile, runoffFile, temperatureFile,
                              dateTimetz, dateTimeformat,
-                             to_mmperhour){
+                             to_mmperhour,
+                             NAval){
   
   # make file paths
   filepaths <- sapply(X = c(rainFile, runoffFile, temperatureFile),
@@ -152,6 +156,17 @@ readObservations <- function(subfolder, rainFile, runoffFile, temperatureFile,
   # convert rainfall and runoff units to mm/hour
   x$rain$rain <- x$rain$rain * to_mmperhour$rain
   x$runoff$runoff <- x$runoff$runoff * to_mmperhour$runoff
+  
+  # deal with NAs
+  allocateNA <- function(a, NAvali){
+    na <- a[[2]][a[[2]] == NAvali]
+    if(length(na) > 0) {a[[2]][a[[2]] == NAvali] <- NA}
+    return(a)
+  }
+  
+  for(i in seq_along(x)){
+    x[[i]] <- allocateNA(a = x[[i]], NAvali = NAval[i])
+  }
   
   return(x)
 }
@@ -534,14 +549,20 @@ lines(rainrunoff$dateTime, rainrunoff$rainrunoff, col='red')
 
 
 par(mfcol=c(2, 1), mar=c(3, 3, 1, 1))
-x <- mod.neubrandenburg$temperature
+
+# how good is SWMM's temperature prediction?
 tbeg <- as.POSIXct('2014-09-12 15:00:00')
-tend <- as.POSIXct('2015-12-07 20:00:00')
-plot(x$dateTime, x$temperature, xlim=c(tbeg, tend), type = 'l')
+tend <- as.POSIXct('2014-09-30 20:00:00')
+plot(obs.neubrandenburg$temperature, xlim=c(tbeg, tend))
+lines(mod.neubrandenburg$temperature, col = 'red')
 
-x <- mod.berlin$temperature
-tbeg <- as.POSIXct('2019-01-21 17:00:00')
-tend <- as.POSIXct('2020-02-10 01:00:00')
-plot(x$dateTime, x$temperature, xlim=c(tbeg, tend), type = 'l')
+x <- obs.neubrandenburg$temperature
+y <- mod.neubrandenburg$temperature
+index <- match(y$dateTime, x$dateTime)
+index <- index[!is.na(index)]
+x <- x[index , ]
 
+dim(y); dim(x)
+
+plot(x$temperature , y$temperature)
 
