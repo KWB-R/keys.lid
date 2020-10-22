@@ -23,10 +23,9 @@ obs.berlin <- readObservations(
   NAval = list(rain = -999, runoff = -999, temperature = -999))
 
 # load modeled runoff, together with rainfall and temperature used as model inputs,
-# transforming to mm/hour
-# since SWMM uses daily Tmax, Tmin and a sinusoidal function to produce continuous
-# T data, readPredictions does the same using the same formulas given in SWMM's
-# reference manual
+# transforming to mm/hour. since SWMM uses daily Tmax, Tmin and a sinusoidal
+# function to produce continuous T data, readPredictions does the same using the 
+# same formulas given in SWMM's reference manual
 mod.neubrandenburg <- readPredictions(
   subfolder = 'models_green_roof',
   rainFile = 'obs_rain_5min_Neubrandenburg.txt',
@@ -273,7 +272,7 @@ readPredictions <- function(subfolder, rainFile, runoffFile, temperatureFile,
           Ti <- (Tmin + Tmax)/2 + 
             (Tmax - Tmin)/2*sin(
               pi*((hourTmax + hourTmin)/2 - houri) /
-                (hourTmax - hourTmin))
+                (hourTmin - hourTmax))
           
         } else {
           
@@ -556,13 +555,16 @@ tend <- as.POSIXct('2014-09-30 20:00:00')
 plot(obs.neubrandenburg$temperature, xlim=c(tbeg, tend))
 lines(mod.neubrandenburg$temperature, col = 'red')
 
-x <- obs.neubrandenburg$temperature
-y <- mod.neubrandenburg$temperature
-index <- match(y$dateTime, x$dateTime)
-index <- index[!is.na(index)]
-x <- x[index , ]
+Tobs <- obs.neubrandenburg$temperature
+Tmod <- mod.neubrandenburg$temperature
+Tobsmod <- dplyr::left_join(Tobs, Tmod, by = 'dateTime')
+Tobsmod <- Tobsmod[!is.na(Tobsmod$temperature.x) & !is.na(Tobsmod$temperature.y), ]
+Tobs <- Tobsmod$temperature.x
+Tmod <- Tobsmod$temperature.y
+par(mfcol=c(1, 2))
+plot(Tobs, Tmod)
+abline(a=0, b=1, col='red')
+summary(lm(Tobs ~ Tmod))
+hist(Tmod - Tobs)
 
-dim(y); dim(x)
-
-plot(x$temperature , y$temperature)
 
