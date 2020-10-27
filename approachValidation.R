@@ -38,7 +38,7 @@ mod.neubrandenburg <- readPredictions(
                         standardMeridian = -15,
                         latitude = 53.56,
                         TmaxDay0 = 17))
-  
+
 mod.berlin <- readPredictions(
   subfolder = 'models_green_roof',
   rainFile = 'obs_rain_5min_Berlin.txt',
@@ -112,58 +112,59 @@ mod.berlin$rain_runoff$TmaxADWP <- TmaxADWP(mod.berlin)
 
 # monthly patterns in reality vs. monthly patterns in SWMM
 obs.neubrandenburg.monthly <- monthlyPattern(obs.neubrandenburg)
+mod.neubrandenburg.monthly <- monthlyPattern(mod.neubrandenburg)
+
 obs.berlin.monthly <- monthlyPattern(obs.berlin)
+mod.berlin.monthly <- monthlyPattern(mod.berlin)
 
+# check temporal autocorrelation
+acf(obs.neubrandenburg.monthly$runoffcoefficient, lag.max = 5)
+acf(obs.berlin.monthly$runoffcoefficient, lag.max = 5)
 
-
+# make regressions
 reg.obs.neubrandenburg <- lm(
-  formula = runCoeff ~ rain + meanTmaxADWP, 
+  formula = runoff ~ rain + meanTmaxADWP, 
   data = obs.neubrandenburg.monthly)
+reg.mod.neubrandenburg <- lm(
+  formula = runoff ~ rain + meanTmaxADWP, 
+  data = mod.neubrandenburg.monthly[-nrow(mod.neubrandenburg.monthly), ])
+
 reg.obs.berlin <- lm(
-  formula = runCoeff ~ rain + meanTmaxADWP, 
+  formula = runoff ~ rain + meanTmaxADWP, 
+  data = obs.berlin.monthly)
+reg.mod.berlin <- lm(
+  formula = runoff ~ rain + meanTmaxADWP, 
   data = mod.berlin.monthly)
 
-car::vif(regMonit)
-car::vif(regSWMM)
+
+car::vif(reg.obs.neubrandenburg)
+car::vif(reg.obs.berlin)
 
 summary(reg.obs.neubrandenburg)
-summary(regSWMM)
+summary(reg.mod.neubrandenburg)
 
-plot(reg.obs.neubrandenburg)
-plot(reg.obs.berlin)
+summary(reg.obs.berlin)
+summary(reg.mod.berlin)
 
-monthlyRC = obs.neubrandenburg.monthly$runCoeff
-acf(monthlyRC, lag.max = 10)
+par(mfcol = c(2, 2))
+plot(runoffcoefficient ~ rain, data = obs.neubrandenburg.monthly,
+     xlim = c(0, 130), ylim = c(0, 1))
+plot(runoffcoefficient ~ rain, 
+     data = mod.neubrandenburg.monthly[-nrow(mod.neubrandenburg.monthly), ],
+     xlim = c(0, 130), ylim = c(0, 1))
+plot(runoffcoefficient ~ rain, data = obs.berlin.monthly,
+     xlim = c(0, 130), ylim = c(0, 1))
+plot(runoffcoefficient ~ rain, 
+     data = mod.berlin.monthly,
+     xlim = c(0, 130), ylim = c(0, 1))
 
 
-
-
-
-nrow(rrEvents.neu)
-nrow(obs.neubrandenburg$rain_runoff)
-rrEvents.neu$tBeg - obs.neubrandenburg$rain_runoff$tBeg
-hist(rrEvents.neu$runoffCoeff - obs.neubrandenburg$rain_runoff$runoffcoefficient)
-
-par(mar=c(3, 3, 1, 1))
-plot(rrEvents.neu$runoffCoeff, 
-     obs.neubrandenburg$rain_runoff$runoffcoefficient)
-abline(a=0, b=1)
-
-mod <- lm(data=obs.neubrandenburg.monthly, 
-          formula= runoffcoefficient ~ rain + meanTmaxADWP)
-summary(mod)
-
-plot(mod)
+# check neubr. mod
+# check berlin obs and mod
 
 
 
-
-
-
-
-
-sim <- swmmr::run_swmm(inp = 'models_green_roof/neubrand.INP')
-
+# functions ----------------------------------------------------------
 readObservations <- function(subfolder, 
                              rainFile, runoffFile, temperatureFile,
                              dateTimetz, dateTimeformat,
@@ -211,7 +212,8 @@ readObservations <- function(subfolder,
   return(x)
 }
 
-readPredictions <- function(subfolder, rainFile, runoffFile, temperatureFile,
+readPredictions <- function(subfolder, 
+                            rainFile, runoffFile, temperatureFile,
                             dateTimetz, dateTimeformat, to_mmperhour,
                             parTcontinuous){
   
@@ -376,7 +378,6 @@ makeRainfallRunoffEvents <- function(rainfalldata, runoffdata){
     return(sum((AA + aa)/2*hh))
   }
   
-  
   # add rainfall [mm], runoff and runoff coefficient
   x <- lapply(
     X = seq_along(rainrunoffevents$iBeg),
@@ -484,162 +485,24 @@ monthlyPattern <- function(data){
 
 
 
+# raw code ------------------------------------------------------------
+tbeg <- as.POSIXct('2015-12-01 12:00:00', tz = 'Etc/GMT-1')
+tend <- as.POSIXct('2015-12-02 23:59:00', tz = 'Etc/GMT-1')
+tax <- seq(tbeg, tend, by=86400*1)
+rain <- mod.neubrandenburg$rain[
+  mod.neubrandenburg$rain$dateTime >= tbeg &
+    mod.neubrandenburg$rain$dateTime <= tend, ] 
+runoff <- mod.neubrandenburg$runoff[
+  mod.neubrandenburg$runoff$dateTime >= tbeg & 
+    mod.neubrandenburg$runoff$dateTime <= tend, ] 
+par(mar=c(3,3,1,1))
+plot(rain, type='l', xaxt='n', ylim=c(0, 2))
+axis(1, at = tax, labels = format(tax, '%b\n%d'), 
+     padj=.3, cex.axis=0.75)
+lines(runoff$dateTime, runoff$runoff*1, col='blue', type='o')
+abline(v = as.POSIXct('2015-11-30 23:59:00'), col='red', lwd=2)
 
 
-
-
-
-
-# green roof BWSTI
-{
-  # grab observed and modeled event data, putting all hydrological flows in l/m2/sec
-  {
-    setwd("Y:/WWT_Department/Projects/KEYS/Data-Work packages/WP1_sponge_city_elements/LIDmodels/greenRoof/output")
-    
-    mod <- tbl_df(read.table("mod_beijing_event_2015_1.txt", skip=4, header=FALSE, 
-                             colClasses=c("character", "character", "numeric", "numeric"),
-                             col.names=c("date", "time", "rainfall", "runoff")))
-    
-    mod %>%
-      mutate(dateTime=as.POSIXct(paste(mod$date, mod$time),
-                                 format="%m/%d/%Y %H:%M:%S", 
-                                 tz="Etc/GMT+8"),
-             hN=rainfall,
-             RO=runoff/65) %>%
-      select(dateTime, hN, RO) -> mod
-    
-    setwd("Y:/WWT_Department/Projects/KEYS/Data-Work packages/WP1_sponge_city_elements/LIDmodels/greenRoof/Timeseries/")
-    obs <- tbl_df(read.table("beijing_obs_runoff_events_BWSTI.txt", 
-                             header=FALSE, skip=1, sep="\t",
-                             colClasses=c("character", "numeric"),
-                             col.names=c("dateTime", "mm5min")))
-    
-    obs$lm2s <- obs$mm5min/(5*60)
-    obs$dateTime <- as.POSIXct(obs$dateTime, format="%m/%d/%Y %H:%M", tz="Etc/GMT+8")
-    
-  }
-  
-  # plot individual events (obs and mod) and compute RMSE
-  {
-    obsVol <- computeVol(dischargeData=obs, Qcolumn="lm2s", 
-                         tBeg=obs$dateTime[1], tEnd=obs$dateTime[nrow(obs)])
-    modVol <- computeVol(dischargeData=mod, Qcolumn="RO", 
-                         tBeg=mod$dateTime[1], tEnd=mod$dateTime[nrow(mod)])
-    obsQmax <- max(obs$lm2s, na.rm=TRUE)
-    modQmax <- max(mod$RO, na.rm=TRUE)
-    
-    c(obsVol=obsVol, modVol=modVol, obsQmax=obsQmax, modQmax=modQmax)
-    
-    tBeg <- mod$dateTime[1]
-    tEnd <- mod$dateTime[nrow(mod)]
-    tAx  <- seq(tBeg, tEnd, by=3600)
-    par(mar=c(3,5,1,1))
-    plot(obs$dateTime, obs$lm2s, xlim=c(tBeg, tEnd), ylim=c(0, 0.005), xaxt="n", las=2, ylab="", 
-         type="o", lwd=2)
-    lines(mod$dateTime, mod$RO, col="red")
-    mtext(side=2, text="L/m2/s", line=3.5, cex=1.5)
-    axis(1, at=tAx, labels=format(tAx, format="%H:%M\n%d-%m"), padj=0.3)
-    
-    
-    #   
-    # rmseVol  <- sqrt(sum((obsVol - modVol)^2)/nrow(obs))
-    # rmsePeak <- sqrt(sum((obsQmax - modQmax)^2)/nrow(obs))
-    # 
-    # par(mfcol=c(1, 2), mar=c(4,5,1,2))
-    # plot(obs$Vol, Qmod$Vol, xlim=c(0, 60), ylim=c(0, 60),
-    #      xlab=expression(paste("Obs. Event Volume [ ", L/m^2, "]")),
-    #      ylab=expression(paste("Mod. Event Volume [ ", L/m^2, "]")))
-    # abline(a=0, b=1)
-    # text(x=0, y=60, labels=expression(paste("RMSE = 12.6 ", L/m^2)), adj=0)
-    # plot(Qobs$Qmax, Qmod$Qmax, xlim=c(0, 2e-3), ylim=c(0, 2e-3),
-    #      xlab=expression(paste("Obs. Event Peak [ ", L/s/m^2, "]")),
-    #      ylab=expression(paste("Mod. Event Peak [ ", L/s/m^2, "]")))
-    # abline(a=0, b=1)
-    # text(x=0, y=0.002, labels=expression(paste("RMSE = 37 ", L/h/m^2)), adj=0)
-  }
-  
-  
-  
-}
-
-
-
-
-# compare model and measurements
-{
-  # grab modeled values (converting l/s to l/h)
-  {
-    setwd("//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_DatenAnalyse/swmm_BBR18")
-    
-    mod <- tbl_df(read.table("grRunoff.txt", skip=4, header=FALSE, 
-                             colClasses=c("character", "character", "numeric"),
-                             col.names=c("date", "time", "runoff")))
-    
-    mod %>%
-      mutate(dateTime=as.POSIXct(paste(mod$date, mod$time),
-                                 format="%m/%d/%Y %H:%M:%S", 
-                                 tz="Etc/GMT-1"),
-             Q=runoff*3600) %>%
-      select(dateTime, Q) -> mod
-  }
-  
-  # grab observed values
-  {
-    obs <- readRoof(site="BBR")
-  }
-  
-  
-  plotRoofEvent(site="BBR", 
-                tBeg="2019-01-21 00:00",
-                tEnd="2019-06-13 08:00",
-                roofData=obs,
-                rainData=rainData, 
-                rainGauge="BlnX",
-                rainScale=50, dt=24*15*3600, Qmax=800)
-  lines(mod$dateTime, mod$Q, col="red")
-  
-}
-
-
-
-
-checkRain(tBeg="2018-09-01 00:00",
-          tEnd="2018-09-01 23:59",
-          dt=2*3600,
-          diN = 1)
-
-
-tbeg <- as.POSIXct('2015-04-25 00:00:00', format='%Y-%m-%d %H:%M:%S', 
-                   tz='Etc/GMT-1')
-tend <- as.POSIXct('2015-04-28 00:00:00', format='%Y-%m-%d %H:%M:%S', 
-                   tz='Etc/GMT-1')
-xax <- seq(tbeg, tend, by=3600*24*1)
-plot(runoffdata$dateTime, runoffdata$runoff, xlim=c(tbeg, tend), type='l', 
-     ylim=c(0, 20))
-axis(1, at = xax, labels = format(xax, format = '%m-%d'), las=2)
-lines(rainfalldata$dateTime, rainfalldata$rain, col='blue')
-lines(rainrunoff$dateTime, rainrunoff$rainrunoff, col='red')
-
-
-par(mfcol=c(2, 1), mar=c(3, 3, 1, 1))
-
-# how good is SWMM's temperature prediction?
-tbeg <- as.POSIXct('2014-09-12 15:00:00')
-tend <- as.POSIXct('2014-09-30 20:00:00')
-Tobs <- obs.neubrandenburg$temperature
-Tmod <- mod.neubrandenburg$temperature
-Tobsmod <- dplyr::left_join(Tobs, Tmod, by = 'dateTime')
-Tobsmod <- Tobsmod[!is.na(Tobsmod$temperature.x) & !is.na(Tobsmod$temperature.y), ]
-Tobs <- Tobsmod$temperature.x
-Tmod <- Tobsmod$temperature.y
-
-layout(mat = matrix(c(1, 2, 1, 3), ncol = 2))
-par(mar=c(2, 2, 1, 1))
-plot(obs.neubrandenburg$temperature, xlim=c(tbeg, tend))
-lines(mod.neubrandenburg$temperature, col = 'red')
-plot(Tobs, Tmod)
-abline(a=0, b=1, col='red')
-summary(lm(Tobs ~ Tmod))
-hist(Tmod - Tobs)
-
+trapezIntegr(runoff, column = 'runoff', tconv = 1/3600)/
+  sum(rain$rain/12)
 
