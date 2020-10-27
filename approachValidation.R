@@ -52,7 +52,7 @@ mod.berlin <- readPredictions(
                         latitude = 52.50,
                         TmaxDay0 = 9))
 
-# make joint rainfall-runoff events (observed)
+# make joint rainfall-runoff events (observed), and remove bad events
 obs.neubrandenburg$rain_runoff <- makeRainfallRunoffEvents(
   rainfalldata = obs.neubrandenburg$rain,
   runoffdata = obs.neubrandenburg$runoff)
@@ -61,7 +61,21 @@ obs.berlin$rain_runoff <- makeRainfallRunoffEvents(
   rainfalldata = obs.berlin$rain,
   runoffdata = obs.berlin$runoff)
 
-# make joint rainfall-runoff events (modeled)
+obs.neubrandenburg$rain_runoff <- removeBadEvents(
+  events = obs.neubrandenburg$rain_runoff,
+  mindur_sec = 300, 
+  removeruncoeffNA = TRUE,
+  removezerorain = TRUE,
+  removeruncoeff_gt_1 = TRUE)
+
+obs.berlin$rain_runoff <- removeBadEvents(
+  events = obs.berlin$rain_runoff,
+  mindur_sec = 300, 
+  removeruncoeffNA = TRUE,
+  removezerorain = TRUE,
+  removeruncoeff_gt_1 = TRUE)
+
+# make joint rainfall-runoff events (modeled), and remove bad events
 mod.neubrandenburg$rain_runoff <-  makeRainfallRunoffEvents(
   rainfalldata = mod.neubrandenburg$rain,
   runoffdata = mod.neubrandenburg$runoff)
@@ -70,55 +84,82 @@ mod.berlin$rain_runoff <- makeRainfallRunoffEvents(
   rainfalldata = mod.berlin$rain,
   runoffdata = mod.berlin$runoff)
 
-# compute max. temperature in antecedent dry weather period (ADWP) (observed)
+mod.neubrandenburg$rain_runoff <- removeBadEvents(
+  events = mod.neubrandenburg$rain_runoff,
+  mindur_sec = 300, 
+  removeruncoeffNA = TRUE,
+  removezerorain = TRUE,
+  removeruncoeff_gt_1 = TRUE)
+
+mod.berlin$rain_runoff <- removeBadEvents(
+  events = mod.berlin$rain_runoff,
+  mindur_sec = 300, 
+  removeruncoeffNA = TRUE,
+  removezerorain = TRUE,
+  removeruncoeff_gt_1 = TRUE)
+
+
+
+# compute max. temperature in antecedent dry weather period (ADWP),
+# observed
 obs.neubrandenburg$rain_runoff$TmaxADWP <- TmaxADWP(obs.neubrandenburg)
 obs.berlin$rain_runoff$TmaxADWP <- TmaxADWP(obs.berlin)
 
-# compute max. temperature in antecedent dry weather period (ADWP) (modeled)
+# compute max. temperature in antecedent dry weather period (ADWP),
+# modeled
 mod.neubrandenburg$rain_runoff$TmaxADWP <- TmaxADWP(mod.neubrandenburg)
 mod.berlin$rain_runoff$TmaxADWP <- TmaxADWP(mod.berlin)
 
 # monthly patterns in reality vs. monthly patterns in SWMM
-obs.neubrandenburg.monthly <- monthlyRunoffCoeff(obs.neubrandenburg)
-obs.berlin.monthly <- monthlyRunoffCoeff(obs.berlin)
-mod.neubrandenburg.monthly <- monthlyRunoffCoeff(mod.neubrandenburg)
-mod.berlin.monthly <- monthlyRunoffCoeff(mod.berlin)
-
-summary(lm(runoff ~ rain + meanTmaxADWP, data = obs.neubrandenburg.monthly))
-summary(lm(runoff ~ rain + meanTmaxADWP, data = mod.neubrandenburg.monthly))
+obs.neubrandenburg.monthly <- monthlyPattern(obs.neubrandenburg)
+obs.berlin.monthly <- monthlyPattern(obs.berlin)
 
 
 
+reg.obs.neubrandenburg <- lm(
+  formula = runCoeff ~ rain + meanTmaxADWP, 
+  data = obs.neubrandenburg.monthly)
+reg.obs.berlin <- lm(
+  formula = runCoeff ~ rain + meanTmaxADWP, 
+  data = mod.berlin.monthly)
+
+car::vif(regMonit)
+car::vif(regSWMM)
+
+summary(reg.obs.neubrandenburg)
+summary(regSWMM)
+
+plot(reg.obs.neubrandenburg)
+plot(reg.obs.berlin)
+
+monthlyRC = obs.neubrandenburg.monthly$runCoeff
+acf(monthlyRC, lag.max = 10)
 
 
 
 
-# remove unusable events (too short, NAs, runoff coeff >1)  
-rrEvents.neu <- rrEvents.neu[rrEvents.neu$dur>300, ]
-rrEvents.neu <- stats::na.omit(rrEvents.neu)
-rrEvents.neu <- rrEvents.neu[rrEvents.neu$runoffCoeff<=1, ]
+
+nrow(rrEvents.neu)
+nrow(obs.neubrandenburg$rain_runoff)
+rrEvents.neu$tBeg - obs.neubrandenburg$rain_runoff$tBeg
+hist(rrEvents.neu$runoffCoeff - obs.neubrandenburg$rain_runoff$runoffcoefficient)
+
+par(mar=c(3, 3, 1, 1))
+plot(rrEvents.neu$runoffCoeff, 
+     obs.neubrandenburg$rain_runoff$runoffcoefficient)
+abline(a=0, b=1)
+
+mod <- lm(data=obs.neubrandenburg.monthly, 
+          formula= runoffcoefficient ~ rain + meanTmaxADWP)
+summary(mod)
+
+plot(mod)
 
 
-# Summarize rrEvents.neu to Monthly aggregation
-obs.events <- rrEvents.neu %>% 
-  mutate(day=day(tBeg),
-         week=week(tBeg),
-         month=month(tBeg),
-         year=year(tBeg),
-         id=as.Date(paste(year, month, 1, sep = '-'), '%Y-%m-%d')) %>%
-  group_by(id) %>%  
-  summarise(dur=sum(dur/3600), 
-            adwp = sum(pBefore/86400),
-            hN=sum(hN),
-            RO=sum(ROvol), 
-            runoffCoeff = RO/hN,
-            retCoeff = 1 - runoffCoeff,
-            Rs=sum(Rs),
-            ET=sum(ET),
-            Tmax = max(Tmax), 
-            Tmin = min(Tmin),
-            Wind = mean(Wind),
-            n_events=n())
+
+
+
+
 
 
 sim <- swmmr::run_swmm(inp = 'models_green_roof/neubrand.INP')
@@ -293,6 +334,7 @@ makeRainfallRunoffEvents <- function(rainfalldata, runoffdata){
   # function takes rainfall and runoff in mm/hour, which is what function
   # 'readObservations' generates
   
+  # interpolate runoff data onto time axis of rainfall data
   runoffdata2 <- approx(
     x=runoffdata$dateTime, 
     y=runoffdata$runoff,
@@ -302,33 +344,57 @@ makeRainfallRunoffEvents <- function(rainfalldata, runoffdata){
     dateTime = runoffdata2$x,
     runoff = runoffdata2$y)
   
+  # make joint rainfall runoff events by summing rainfall + runnof and
+  # getting events from the summed series
   rainrunoff <- data.frame(
     dateTime = runoffdata$dateTime,
     rainrunoff = rainfalldata$rain + runoffdata$runoff)
   
   rainrunoffevents <- kwb.event::getEvents(
     rainData = rainrunoff, 
-    seriesName = "rainrunoff")
+    seriesName = "rainrunoff", 
+    signalThreshold = 0)
   
+  # helper function for filtering storms from rainfall series 
   filterstorm <- function(data, tBeg, tEnd){
     return(data[data$dateTime >= tBeg &
                   data$dateTime <= tEnd, ])
   }
   
-  x <- lapply(X = seq_along(rainrunoffevents$iBeg),
-              FUN = function(i){
-                
-                tBeg <- rainrunoffevents$tBeg[i]
-                tEnd <- rainrunoffevents$tEnd[i]
-                
-                rainsel <- filterstorm(rainfalldata, tBeg, tEnd)
-                runoffsel <- filterstorm(runoffdata, tBeg, tEnd)
-                
-                eventrain <- trapezIntegr(rainsel, 'rain')
-                eventrunoff <- trapezIntegr(runoffsel, 'runoff')
-                
-                return(cbind(rain = eventrain, 
-                             runoff = eventrunoff))})
+  # helper function for numerical integration
+  trapezIntegr <- function(data, column, tconv){
+    
+    data <- data[!is.na(data[[column]]), ]
+    
+    AA   <- data[[column]][2:nrow(data)]
+    
+    aa   <- data[[column]][1:(nrow(data) - 1)]
+    
+    hh   <- (as.numeric(data$dateTime[2:nrow(data)]) - 
+               as.numeric(data$dateTime[1:(nrow(data) - 1)]))*tconv
+    
+    return(sum((AA + aa)/2*hh))
+  }
+  
+  
+  # add rainfall [mm], runoff and runoff coefficient
+  x <- lapply(
+    X = seq_along(rainrunoffevents$iBeg),
+    FUN = function(i){
+      
+      tBeg <- rainrunoffevents$tBeg[i]
+      tEnd <- rainrunoffevents$tEnd[i]
+      
+      rainsel <- filterstorm(rainfalldata, tBeg, tEnd)
+      runoffsel <- filterstorm(runoffdata, tBeg, tEnd)
+      
+      eventrain <- trapezIntegr(rainsel, 'rain', tconv = 1/3600)
+      eventrunoff <- trapezIntegr(runoffsel, 'runoff', tconv = 1/3600)
+      eventruncoeff <- eventrunoff/eventrain
+      
+      return(cbind(rain = eventrain, 
+                   runoff = eventrunoff,
+                   runoffcoefficient = eventruncoeff))})
   
   x <- data.frame(do.call(rbind, x))
   
@@ -337,18 +403,24 @@ makeRainfallRunoffEvents <- function(rainfalldata, runoffdata){
   return(rainrunoffevents)
 }
 
-trapezIntegr <- function(data, column){
+removeBadEvents <- function(events, mindur_sec, 
+                            removeruncoeffNA, 
+                            removeruncoeff_gt_1,
+                            removezerorain){
   
-  data <- data[!is.na(data[[column]]), ]
+  events <- events[events$dur > mindur_sec, ]
   
-  AA   <- data[[column]][2:nrow(data)]
+  if(removeruncoeffNA){
+    events <- events[!is.na(events$runoffcoefficient), ]    
+  }
+
+  if(removezerorain){
+    events <- events[events$rain > 0, ]
+  }
   
-  aa   <- data[[column]][1:(nrow(data) - 1)]
-  
-  hh   <- (as.numeric(data$dateTime[2:nrow(data)]) - 
-             as.numeric(data$dateTime[1:(nrow(data) - 1)]))/3600
-  
-  return(sum((AA + aa)/2*hh))
+  if(removeruncoeff_gt_1){
+    events <- events[events$runoffcoefficient <= 1, ]
+  }
 }
 
 TmaxADWP <- function(data){
@@ -387,23 +459,25 @@ TmaxADWP <- function(data){
   return(x)
 }
 
-monthlyRunoffCoeff <- function(data){
+monthlyPattern <- function(data){
   
-  x <- data$rain_runoff[, c('tBeg', 'rain', 'runoff', 'TmaxADWP')]
-  x <- na.omit(x)
+  x <- data$rain_runoff[, c('tBeg', 'rain', 'runoff',
+                            'runoffcoefficient',
+                            'TmaxADWP')]
+  
   x$yearMonth <- as.character(format(x$tBeg, format = '%Y%m'))
   
-  x.monthly <- data.frame(
-    aggregate(x = x[, c('rain', 'runoff')], 
-              by = list(x$yearMonth), 
-              FUN = sum),
-    meanTmaxADWP = aggregate(x = x[, 'TmaxADWP'],
-                             by = list(x$yearMonth),
-                             FUN = mean)[, 2])
+  x.monthly <- aggregate(
+    . ~ yearMonth, 
+    data = x,
+    FUN = function(x) c(sum = sum(x), mean = mean(x)))
   
-  names(x.monthly)[1] <- 'yearMonth'
+  x.monthly <- data.frame(yearMonth = x.monthly$yearMonth,
+                          rain = x.monthly$rain[, 'sum'],
+                          runoff = x.monthly$runoff[, 'sum'],
+                          meanTmaxADWP = x.monthly$TmaxADWP[, 'mean'])
   
-  x.monthly$runCoeff <- x.monthly$runoff/x.monthly$rain
+  x.monthly$runoffcoefficient <- x.monthly$runoff/x.monthly$rain
   
   return(x.monthly)
 }
@@ -552,16 +626,17 @@ par(mfcol=c(2, 1), mar=c(3, 3, 1, 1))
 # how good is SWMM's temperature prediction?
 tbeg <- as.POSIXct('2014-09-12 15:00:00')
 tend <- as.POSIXct('2014-09-30 20:00:00')
-plot(obs.neubrandenburg$temperature, xlim=c(tbeg, tend))
-lines(mod.neubrandenburg$temperature, col = 'red')
-
 Tobs <- obs.neubrandenburg$temperature
 Tmod <- mod.neubrandenburg$temperature
 Tobsmod <- dplyr::left_join(Tobs, Tmod, by = 'dateTime')
 Tobsmod <- Tobsmod[!is.na(Tobsmod$temperature.x) & !is.na(Tobsmod$temperature.y), ]
 Tobs <- Tobsmod$temperature.x
 Tmod <- Tobsmod$temperature.y
-par(mfcol=c(1, 2))
+
+layout(mat = matrix(c(1, 2, 1, 3), ncol = 2))
+par(mar=c(2, 2, 1, 1))
+plot(obs.neubrandenburg$temperature, xlim=c(tbeg, tend))
+lines(mod.neubrandenburg$temperature, col = 'red')
 plot(Tobs, Tmod)
 abline(a=0, b=1, col='red')
 summary(lm(Tobs ~ Tmod))
