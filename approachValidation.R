@@ -98,8 +98,6 @@ mod.berlin$rain_runoff <- removeBadEvents(
   removezerorain = TRUE,
   removeruncoeff_gt_1 = TRUE)
 
-
-
 # compute max. temperature in antecedent dry weather period (ADWP),
 # observed
 obs.neubrandenburg$rain_runoff$TmaxADWP <- TmaxADWP(obs.neubrandenburg)
@@ -110,58 +108,39 @@ obs.berlin$rain_runoff$TmaxADWP <- TmaxADWP(obs.berlin)
 mod.neubrandenburg$rain_runoff$TmaxADWP <- TmaxADWP(mod.neubrandenburg)
 mod.berlin$rain_runoff$TmaxADWP <- TmaxADWP(mod.berlin)
 
-# monthly patterns in reality vs. monthly patterns in SWMM
-obs.neubrandenburg.monthly <- monthlyPattern(obs.neubrandenburg)
-mod.neubrandenburg.monthly <- monthlyPattern(mod.neubrandenburg)
+# aggregate to monthly level
+obs.neubrandenburg$monthly <- monthlyPattern(obs.neubrandenburg)
+mod.neubrandenburg$monthly <- monthlyPattern(mod.neubrandenburg)
+obs.berlin$monthly <- monthlyPattern(obs.berlin)
+mod.berlin$monthly <- monthlyPattern(mod.berlin)
 
-obs.berlin.monthly <- monthlyPattern(obs.berlin)
-mod.berlin.monthly <- monthlyPattern(mod.berlin)
+# check temporal autocorrelation at monthly level
+acf(obs.neubrandenburg$monthly$runoffcoefficient, lag.max = 5)
+acf(obs.berlin$monthly$runoffcoefficient, lag.max = 5)
 
-# check temporal autocorrelation
-acf(obs.neubrandenburg.monthly$runoffcoefficient, lag.max = 5)
-acf(obs.berlin.monthly$runoffcoefficient, lag.max = 5)
-
-# make regressions
+# make regressions to explore patterns at monthly level
 reg.obs.neubrandenburg <- lm(
-  formula = runoff ~ rain + meanTmaxADWP, 
-  data = obs.neubrandenburg.monthly)
+  formula = runoffcoefficient ~ rain + meanTmaxADWP, 
+  data = obs.neubrandenburg$monthly)
 reg.mod.neubrandenburg <- lm(
-  formula = runoff ~ rain + meanTmaxADWP, 
-  data = mod.neubrandenburg.monthly[-nrow(mod.neubrandenburg.monthly), ])
+  formula = runoffcoefficient ~ rain + meanTmaxADWP, 
+  data = mod.neubrandenburg$monthly)
 
 reg.obs.berlin <- lm(
-  formula = runoff ~ rain + meanTmaxADWP, 
-  data = obs.berlin.monthly)
+  formula = runoffcoefficient ~ rain + meanTmaxADWP, 
+  data = obs.berlin$monthly)
 reg.mod.berlin <- lm(
-  formula = runoff ~ rain + meanTmaxADWP, 
-  data = mod.berlin.monthly)
-
-
-car::vif(reg.obs.neubrandenburg)
-car::vif(reg.obs.berlin)
+  formula = runoffcoefficient ~ rain + meanTmaxADWP, 
+  data = mod.berlin$monthly)
 
 summary(reg.obs.neubrandenburg)
 summary(reg.mod.neubrandenburg)
-
 summary(reg.obs.berlin)
 summary(reg.mod.berlin)
 
-par(mfcol = c(2, 2))
-plot(runoffcoefficient ~ rain, data = obs.neubrandenburg.monthly,
-     xlim = c(0, 130), ylim = c(0, 1))
-plot(runoffcoefficient ~ rain, 
-     data = mod.neubrandenburg.monthly[-nrow(mod.neubrandenburg.monthly), ],
-     xlim = c(0, 130), ylim = c(0, 1))
-plot(runoffcoefficient ~ rain, data = obs.berlin.monthly,
-     xlim = c(0, 130), ylim = c(0, 1))
-plot(runoffcoefficient ~ rain, 
-     data = mod.berlin.monthly,
-     xlim = c(0, 130), ylim = c(0, 1))
-
-
-# check neubr. mod
-# check berlin obs and mod
-
+# check collinearity
+car::vif(reg.obs.neubrandenburg)
+car::vif(reg.obs.berlin)
 
 
 # functions ----------------------------------------------------------
@@ -335,28 +314,7 @@ makeRainfallRunoffEvents <- function(rainfalldata, runoffdata){
   
   # function takes rainfall and runoff in mm/hour, which is what function
   # 'readObservations' generates
-  
-  # interpolate runoff data onto time axis of rainfall data
-  runoffdata2 <- approx(
-    x=runoffdata$dateTime, 
-    y=runoffdata$runoff,
-    xout=rainfalldata$dateTime)
-  
-  runoffdata <- data.frame(
-    dateTime = runoffdata2$x,
-    runoff = runoffdata2$y)
-  
-  # make joint rainfall runoff events by summing rainfall + runnof and
-  # getting events from the summed series
-  rainrunoff <- data.frame(
-    dateTime = runoffdata$dateTime,
-    rainrunoff = rainfalldata$rain + runoffdata$runoff)
-  
-  rainrunoffevents <- kwb.event::getEvents(
-    rainData = rainrunoff, 
-    seriesName = "rainrunoff", 
-    signalThreshold = 0)
-  
+
   # helper function for filtering storms from rainfall series 
   filterstorm <- function(data, tBeg, tEnd){
     return(data[data$dateTime >= tBeg &
@@ -377,6 +335,43 @@ makeRainfallRunoffEvents <- function(rainfalldata, runoffdata){
     
     return(sum((AA + aa)/2*hh))
   }
+  
+  # helper function to count no. days in monitoring time series
+  countdays <- function(timeseries){
+    
+    day <- unique(as.Date(timeseries$dateTime))
+    
+    yearmonth <- as.character(format(day, format = '%Y-%m'))
+    
+    ndaysmonth <- aggregate(x = day,
+                            by = list(yearmonth),
+                            FUN = length)
+    
+    colnames(ndaysmonth) <- c('yearmonth', 'ndays')
+    
+    return(ndaysmonth)
+  }
+    
+  # interpolate runoff data onto time axis of rainfall data
+  runoffdata2 <- approx(
+    x=runoffdata$dateTime, 
+    y=runoffdata$runoff,
+    xout=rainfalldata$dateTime)
+  
+  runoffdata <- data.frame(
+    dateTime = runoffdata2$x,
+    runoff = runoffdata2$y)
+  
+  # make joint rainfall runoff events by summing rainfall + runnof and
+  # getting events from the summed series
+  rainrunoff <- data.frame(
+    dateTime = runoffdata$dateTime,
+    rainrunoff = rainfalldata$rain + runoffdata$runoff)
+  
+  rainrunoffevents <- kwb.event::getEvents(
+    rainData = rainrunoff, 
+    seriesName = "rainrunoff", 
+    signalThreshold = 0)
   
   # add rainfall [mm], runoff and runoff coefficient
   x <- lapply(
@@ -400,6 +395,17 @@ makeRainfallRunoffEvents <- function(rainfalldata, runoffdata){
   x <- data.frame(do.call(rbind, x))
   
   rainrunoffevents <- cbind(rainrunoffevents, x)
+  
+  
+  # keep only full months
+  
+  ndays <- countdays(timeseries = rainrunoff)
+  
+  rainrunoffevents$yearmonth <- as.character(format(rainrunoffevents$tBeg, format = '%Y-%m'))
+  
+  rainrunoffevents <- dplyr::left_join(rainrunoffevents, ndays, by = 'yearmonth')
+  
+  rainrunoffevents <- rainrunoffevents[rainrunoffevents$ndays >= 28, ]
   
   return(rainrunoffevents)
 }
@@ -483,26 +489,4 @@ monthlyPattern <- function(data){
   return(x.monthly)
 }
 
-
-
-# raw code ------------------------------------------------------------
-tbeg <- as.POSIXct('2015-12-01 12:00:00', tz = 'Etc/GMT-1')
-tend <- as.POSIXct('2015-12-02 23:59:00', tz = 'Etc/GMT-1')
-tax <- seq(tbeg, tend, by=86400*1)
-rain <- mod.neubrandenburg$rain[
-  mod.neubrandenburg$rain$dateTime >= tbeg &
-    mod.neubrandenburg$rain$dateTime <= tend, ] 
-runoff <- mod.neubrandenburg$runoff[
-  mod.neubrandenburg$runoff$dateTime >= tbeg & 
-    mod.neubrandenburg$runoff$dateTime <= tend, ] 
-par(mar=c(3,3,1,1))
-plot(rain, type='l', xaxt='n', ylim=c(0, 2))
-axis(1, at = tax, labels = format(tax, '%b\n%d'), 
-     padj=.3, cex.axis=0.75)
-lines(runoff$dateTime, runoff$runoff*1, col='blue', type='o')
-abline(v = as.POSIXct('2015-11-30 23:59:00'), col='red', lwd=2)
-
-
-trapezIntegr(runoff, column = 'runoff', tconv = 1/3600)/
-  sum(rain$rain/12)
 

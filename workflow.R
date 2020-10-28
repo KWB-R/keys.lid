@@ -13,5 +13,5 @@
 # plot results
 
 
-# vrr vs weather vs. lid parameters
+# annual VRR vs weather vs. lid parameters
 
