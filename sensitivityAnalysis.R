@@ -1,3 +1,30 @@
+# create swmm model
+
+
+# read swmm model
+
+
+# define parameter intervals
+
+
+# run sensitivity analysis, input time series ideally should cover several years
+
+
+# write out results
+
+
+# plot results
+
+
+# annual VRR vs weather vs. lid parameters
+
+
+
+
+
+
+
+
 library(swmmr)
 library(gdata)
 library(xts)
@@ -14,11 +41,11 @@ summary(input)
 # length of the loop
 l <- 1000
 
-# data frame to write in parameter values 
+# data frame to write parameter values 
 cal_names<-c("Run", "Soil_Thickness", "Porosity", "Field_Capacity", "Wilting_Point", "Conductivity", "Conductivity_Slope", "Suction_Head", # Soil Parameters
              "Drain_Thickness", "Void_Fraction", "Roughness", # Drainage Mat Parameters 
              "Sum_R"# Total Runoff
-)
+             )
 
 cal_results <- data.frame(matrix(
   data = NA,
@@ -30,14 +57,14 @@ cal_col <- colnames(cal_results)
 cal_results <- gdata::rename.vars(cal_results,cal_col, cal_names)
 
 
-# BWSTI Beijing events period
+# time period
 seq <- seq.POSIXt(ISOdate(2008,4,30,00,05,tz="UTC"),
                   ISOdate(2019,10,15,23,00,tz="UTC"),
                   by="5 min")
 
 
 # runoff results of the green roof
-for (i in 1:10){
+for (i in 1:l){
   
   # set parameters for simulation
   input$lid_controls$Par1[3] <- runif(n = 1, min = 80, max = 120) # Soil Thickness
@@ -79,7 +106,7 @@ for (i in 1:10){
   
   # write model runoff in data frame
   runoff_sim <- list()
-  
+
   # extract model runoff of entire simulation period
   runoff_sim <- data.frame(matrix(
     data = NA,
@@ -96,7 +123,7 @@ for (i in 1:10){
   sum_sim <- sum(runoff_sim$sim) 
   
   cal_results$Sum_R[i] <- sum_sim
-  
+ 
   print(paste("Run",i,"of",l,"finished"),sep=" ")
 }
 
