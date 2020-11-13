@@ -1,3 +1,31 @@
+### install package dependencies
+cran_pkgs <- c("cars", "remotes", "swmmr", "xts")
+install.packages(pkgs = cran_pkgs, repos = "https://cran.rstudio.com")
+
+remotes::install_github("kwb-r/kwb.utils")
+
+### Download "EPA SWMM 5.1.015.7z" from KWB cloud 
+### "https://cloud.kompetenz-wasser.de/index.php/f/182136"
+### and extract to "C:/_UserProg/EPA SWMM 5.1.015/"
+
+### define paths
+paths_list <- list(
+  root_data = "//medusa/projekte$/WWT_Department/Projects/KEYS/Data-Work packages/WP1_sponge_city_elements/_DataAnalysis",
+  root_swmm = "C:/_UserProg/",
+  swmm_version = "5.1.015",
+  swmm_exe = "<root_swmm>/EPA SWMM <swmm_version>/swmm5.exe",
+  lid_models = "<root_data>/LIDmodels",
+  green_roof = "<lid_models>/greenRoof"
+)
+
+### at kwb:
+paths <- kwb.utils::resolve(paths_list)
+
+### at home:
+paths <- kwb.utils::resolve(paths_list,   
+                            root_data = "C:/kwb/projects/keys/data/_DataAnalysis")
+
+
 # create swmm model
 
 
@@ -19,12 +47,6 @@
 # annual VRR vs weather vs. lid parameters
 
 
-
-
-
-
-
-
 library(swmmr)
 library(gdata)
 library(xts)
@@ -32,10 +54,10 @@ library(ggplot2)
 library(GGally)
 library(ggpubr)
 
-setwd('c:/kwb/KEYS/WP1_sponge_city_elements/_DataAnalysis/LIDmodels/greenRoof/BWSTI_Zone1')
 
 # read swmm input file
-input <- swmmr::read_inp(x = "BWSTI_Zone1.inp")
+
+input <- swmmr::read_inp(x = file.path(paths$green_roof, "BWSTI_Zone1/BWSTI_Zone1.inp"))
 summary(input)
 
 # length of the loop
@@ -96,13 +118,14 @@ for (i in 1:l){
   swmmr::write_inp(input,"Validation_Beijing.inp") 
   
   # run swimm with changed input file
-  files <- swmmr::run_swmm(inp = "Validation_Beijing.inp") 
+  files <- swmmr::run_swmm(inp = "Validation_Beijing.inp",
+                           exec = paths$swmm_exe) 
   
   # read out results for itype 3 = system and vIndex 4 = runoff 
   results <- swmmr::read_out(files$out, iType = 3, vIndex = c(4)) 
   
   # change timezone to UTC
-  tzone(results$system_variable$total_runoff) <- "UTC"
+  xts::tzone(results$system_variable$total_runoff) <- "UTC"
   
   # write model runoff in data frame
   runoff_sim <- list()
