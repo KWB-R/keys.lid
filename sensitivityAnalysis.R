@@ -1,5 +1,5 @@
 ### install package dependencies
-cran_pkgs <- c("cars", "remotes", "swmmr", "xts")
+cran_pkgs <- c("cars", "gdata", "remotes", "swmmr", "xts")
 install.packages(pkgs = cran_pkgs, repos = "https://cran.rstudio.com")
 
 remotes::install_github("kwb-r/kwb.utils")
@@ -46,13 +46,6 @@ paths <- kwb.utils::resolve(paths_list,
 
 # annual VRR vs weather vs. lid parameters
 
-
-library(swmmr)
-library(gdata)
-library(xts)
-library(ggplot2)
-library(GGally)
-library(ggpubr)
 
 
 # read swmm input file
