@@ -1,5 +1,5 @@
 ### install package dependencies
-cran_pkgs <- c("cars", "gdata", "remotes", "swmmr", "xts")
+cran_pkgs <- c("gdata", "remotes", "swmmr", "sessioninfo", "xts")
 install.packages(pkgs = cran_pkgs, repos = "https://cran.rstudio.com")
 
 remotes::install_github("kwb-r/kwb.utils")
@@ -11,7 +11,7 @@ remotes::install_github("kwb-r/kwb.utils")
 ### define paths
 paths_list <- list(
   root_data = "//medusa/projekte$/WWT_Department/Projects/KEYS/Data-Work packages/WP1_sponge_city_elements/_DataAnalysis",
-  root_swmm = "C:/_UserProg/",
+  root_swmm = "C:/_UserProg",
   swmm_version = "5.1.015",
   swmm_exe = "<root_swmm>/EPA SWMM <swmm_version>/swmm5.exe",
   lid_models = "<root_data>/LIDmodels",
@@ -22,9 +22,10 @@ paths_list <- list(
 paths <- kwb.utils::resolve(paths_list)
 
 ### at home:
+if (FALSE) {
 paths <- kwb.utils::resolve(paths_list,   
                             root_data = "C:/kwb/projects/keys/data/_DataAnalysis")
-
+}
 
 # create swmm model
 
@@ -49,8 +50,9 @@ paths <- kwb.utils::resolve(paths_list,
 
 
 # read swmm input file
-
-input <- swmmr::read_inp(x = file.path(paths$green_roof, "BWSTI_Zone1/BWSTI_Zone1.inp"))
+swmm_inp <- file.path(paths$green_roof, "BWSTI_Zone1/BWSTI_Zone1.inp")
+swmm_inp
+input <- swmmr::read_inp(x = swmm_inp)
 summary(input)
 
 # length of the loop
@@ -142,4 +144,8 @@ for (i in 1:l){
  
   print(paste("Run",i,"of",l,"finished"),sep=" ")
 }
+
+
+paths$swmm_exe
+sessioninfo::session_info()
 
