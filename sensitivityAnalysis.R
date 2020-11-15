@@ -48,6 +48,7 @@ paths <- kwb.utils::resolve(paths_list,
 # annual VRR vs weather vs. lid parameters
 
 
+# from here, distribute this in steps above
 
 # read swmm input file
 swmm_inp <- file.path(paths$green_roof, "BWSTI_Zone1/BWSTI_Zone1.inp")
