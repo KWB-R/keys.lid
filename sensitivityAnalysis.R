@@ -10,22 +10,15 @@ remotes::install_github("kwb-r/kwb.utils")
 
 ### define paths
 paths_list <- list(
-  root_data = "//medusa/projekte$/WWT_Department/Projects/KEYS/Data-Work packages/WP1_sponge_city_elements/_DataAnalysis",
+  root_data = ".",
   root_swmm = "C:/_UserProg",
   swmm_version = "5.1.015",
   swmm_exe = "<root_swmm>/EPA SWMM <swmm_version>/swmm5.exe",
-  lid_models = "<root_data>/LIDmodels",
-  green_roof = "<lid_models>/greenRoof"
+  lid_models = "<root_data>/sensitivity_analysis_models"
 )
 
-### at kwb:
 paths <- kwb.utils::resolve(paths_list)
 
-### at home:
-if (FALSE) {
-paths <- kwb.utils::resolve(paths_list,   
-                            root_data = "C:/kwb/projects/keys/data/_DataAnalysis")
-}
 
 # create swmm model
 
@@ -51,7 +44,7 @@ paths <- kwb.utils::resolve(paths_list,
 # from here, distribute this in steps above
 
 # read swmm input file
-swmm_inp <- file.path(paths$green_roof, "BWSTI_Zone1/BWSTI_Zone1.inp")
+swmm_inp <- file.path(paths$lid_models, "model_greenroof_zone1.inp")
 swmm_inp
 input <- swmmr::read_inp(x = swmm_inp)
 summary(input)
