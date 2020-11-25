@@ -46,7 +46,7 @@ sensitivity_results <- data.frame(matrix(
   dimnames = list(NULL, names)))
 
 
-# set ranges for parameter values
+# set ranges for parameter values*******************
 
 
 # run sensitivity analysis, input time series ideally should cover several years
@@ -58,12 +58,36 @@ seq <- seq.POSIXt(ISOdate(2008,4,30,00,05,tz="UTC"),
 
 
 pb <- txtProgressBar(min = 0, max = l, style = 3)
-for (i in seq_len(l)){
+for(i in seq_len(l)){
   
   setTxtProgressBar(pb, i)
   
   # set parameters for simulation -> draw from uniform distribution with ranges
   # given above
+  param_table <- swmm_file$lid_controls[, 3:ncol(swmm_file$lid_controls)]
+  
+  # find positions that are not na
+  which(!is.na(x))
+  
+  # go to those positions and set parameter values
+  
+  for(j in seq_len(nrow(param_table))){
+    
+    for(k in 1:ncol(param_table)){
+      
+      param_jk <- param_table[[j, k]]
+      
+      
+    }
+    
+  }
+  
+  # ***************************************************************************************
+  # check which parameters are which for our LIDs by changing them manually in the GUI
+  # and looking at the *.inp file
+  # ***************************************************************************************
+  
+  
   swmm_file$lid_controls$Par1[3] <- runif(n = 1, min = 80, max = 120) # Soil Thickness
   swmm_file$lid_controls$Par2[3] <- runif(n = 1, min = 0.45, max = 0.65) # Porosity
   swmm_file$lid_controls$Par3[3] <- runif(n = 1, min = 0.35, max = 0.55) # Field Capacity
@@ -75,7 +99,7 @@ for (i in seq_len(l)){
   swmm_file$lid_controls$Par2[4] <- runif(n = 1, min = 0.3, max = 0.5) # Void Fraction
   swmm_file$lid_controls$Par3[4] <- runif(n = 1, min = 0.01, max = 0.03) # Roughness
   
-  
+  swmm_file$lid_controls <- param_table
   
   # write values in the dataframe
   cal_results$Run[i] <- i
