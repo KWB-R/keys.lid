@@ -48,7 +48,7 @@ DRY_ONLY         NO
 
 [TEMPERATURE]
 ;;Data Element     Values     
-FILE               "C:\kwb\KEYS\LIDsensitivity\data_weather_sponge_regions\swmm_climeng_zone1_temp.txt"
+FILE               "data_weather_sponge_regions\swmm_climeng_zone1_temp.txt"
 WINDSPEED FILE    
 SNOWMELT           0 0.5 0.6 18 39 0
 ADC IMPERVIOUS     1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
@@ -57,7 +57,7 @@ ADC PERVIOUS       1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
 [RAINGAGES]
 ;;Name           Format    Interval SCF      Source    
 ;;-------------- --------- ------ ------ ----------
-RainGage         VOLUME    0:05     1        FILE       "C:\kwb\KEYS\LIDsensitivity\data_weather_sponge_regions\swmm_bwsti_zone1_rain_hourly.txt" BWSTI      MM   
+RainGage         VOLUME    0:05     1        FILE       "data_weather_sponge_regions\swmm_bwsti_zone1_rain_hourly.txt" BWSTI      MM   
 
 [SUBCATCHMENTS]
 ;;Name           Rain Gage        Outlet           Area     %Imperv  Width    %Slope   CurbLen  SnowPack        

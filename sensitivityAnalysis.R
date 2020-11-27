@@ -10,70 +10,46 @@ remotes::install_github("kwb-r/kwb.utils")
 
 ### define paths
 paths_list <- list(
-  root_data = "//medusa/projekte$/WWT_Department/Projects/KEYS/Data-Work packages/WP1_sponge_city_elements/_DataAnalysis",
+  root_data = ".",
   root_swmm = "C:/_UserProg",
   swmm_version = "5.1.015",
   swmm_exe = "<root_swmm>/EPA SWMM <swmm_version>/swmm5.exe",
-  lid_models = "<root_data>/LIDmodels",
-  green_roof = "<lid_models>/greenRoof"
+  lid_models = "<root_data>/sensitivity_analysis_models"
 )
 
-### at kwb:
 paths <- kwb.utils::resolve(paths_list)
 
-### at home:
-if (FALSE) {
-paths <- kwb.utils::resolve(paths_list,   
-                            root_data = "C:/kwb/projects/keys/data/_DataAnalysis")
-}
 
 # create swmm model
-
+# ... function to create *.inp automatically in the future. so far, it is done manually with the GUI
+# ...
 
 # read swmm model
+swmm_file <- swmmr::read_inp(x = file.path(paths$lid_models, "model_greenroof_zone1.inp"))
+
+# number of parameter combinations
+l <- 1000
+
+# initialize data.frame for holding parameter values
+# these are specific to each lid
+names <- c("run_number", 
+           "surface_vegetated_volume", "surface_roughness", "surface_slope",
+           "soil_thickness", "soil_porosity", "soil_field_Capacity", "soil_wilting_point", 
+           "soil_conductivity", "soil_conductivity_slope", "soil_suction_head", 
+           "drainmat_thickness", "drainmat_void_fraction", "drainmat_roughness", 
+           "total_runoff")
+
+sensitivity_results <- data.frame(matrix(
+  data = NA,
+  ncol = length(names),
+  nrow = l,
+  dimnames = list(NULL, names)))
 
 
-# define parameter intervals
+# set ranges for parameter values*******************
 
 
 # run sensitivity analysis, input time series ideally should cover several years
-
-
-# write out results
-
-
-# plot results
-
-
-# annual VRR vs weather vs. lid parameters
-
-
-# from here, distribute this in steps above
-
-# read swmm input file
-swmm_inp <- file.path(paths$green_roof, "BWSTI_Zone1/BWSTI_Zone1.inp")
-swmm_inp
-input <- swmmr::read_inp(x = swmm_inp)
-summary(input)
-
-# length of the loop
-l <- 1000
-
-# data frame to write parameter values 
-cal_names<-c("Run", "Soil_Thickness", "Porosity", "Field_Capacity", "Wilting_Point", "Conductivity", "Conductivity_Slope", "Suction_Head", # Soil Parameters
-             "Drain_Thickness", "Void_Fraction", "Roughness", # Drainage Mat Parameters 
-             "Sum_R"# Total Runoff
-             )
-
-cal_results <- data.frame(matrix(
-  data = NA,
-  ncol = length(cal_names),
-  nrow = l))
-
-cal_col <- colnames(cal_results)
-
-cal_results <- gdata::rename.vars(cal_results,cal_col, cal_names)
-
 
 # time period
 seq <- seq.POSIXt(ISOdate(2008,4,30,00,05,tz="UTC"),
@@ -81,36 +57,66 @@ seq <- seq.POSIXt(ISOdate(2008,4,30,00,05,tz="UTC"),
                   by="5 min")
 
 
-# runoff results of the green roof
-for (i in 1:l){
+pb <- txtProgressBar(min = 0, max = l, style = 3)
+for(i in seq_len(l)){
   
-  # set parameters for simulation
-  input$lid_controls$Par1[3] <- runif(n = 1, min = 80, max = 120) # Soil Thickness
-  input$lid_controls$Par2[3] <- runif(n = 1, min = 0.45, max = 0.65) # Porosity
-  input$lid_controls$Par3[3] <- runif(n = 1, min = 0.35, max = 0.55) # Field Capacity
-  input$lid_controls$Par4[3] <- runif(n = 1, min = 0.05, max = 0.20) # Wilting Point
-  input$lid_controls$Par5[3] <- runif(n = 1, min = 50, max = 350) # Conductivity
-  input$lid_controls$Par6[3] <- runif(n = 1, min = 30, max = 55) # Conductivity Slope
-  input$lid_controls$Par7[3] <- runif(n = 1, min = 50, max = 100) # Suction Head
-  input$lid_controls$Par1[4] <- runif(n = 1, min = 10, max = 50) # Storage Thickness
-  input$lid_controls$Par2[4] <- runif(n = 1, min = 0.3, max = 0.5) # Void Fraction
-  input$lid_controls$Par3[4] <- runif(n = 1, min = 0.01, max = 0.03) # Roughness
+  setTxtProgressBar(pb, i)
+  
+  # set parameters for simulation -> draw from uniform distribution with ranges
+  # given above
+  param_table <- swmm_file$lid_controls[, 3:ncol(swmm_file$lid_controls)]
+  
+  # find positions that are not na
+  which(!is.na(x))
+  
+  # go to those positions and set parameter values
+  
+  for(j in seq_len(nrow(param_table))){
+    
+    for(k in 1:ncol(param_table)){
+      
+      param_jk <- param_table[[j, k]]
+      
+      
+    }
+    
+  }
+  
+  # ***************************************************************************************
+  # check which parameters are which for our LIDs by changing them manually in the GUI
+  # and looking at the *.inp file
+  # ***************************************************************************************
+  
+  
+  swmm_file$lid_controls$Par1[3] <- runif(n = 1, min = 80, max = 120) # Soil Thickness
+  swmm_file$lid_controls$Par2[3] <- runif(n = 1, min = 0.45, max = 0.65) # Porosity
+  swmm_file$lid_controls$Par3[3] <- runif(n = 1, min = 0.35, max = 0.55) # Field Capacity
+  swmm_file$lid_controls$Par4[3] <- runif(n = 1, min = 0.05, max = 0.20) # Wilting Point
+  swmm_file$lid_controls$Par5[3] <- runif(n = 1, min = 50, max = 350) # Conductivity
+  swmm_file$lid_controls$Par6[3] <- runif(n = 1, min = 30, max = 55) # Conductivity Slope
+  swmm_file$lid_controls$Par7[3] <- runif(n = 1, min = 50, max = 100) # Suction Head
+  swmm_file$lid_controls$Par1[4] <- runif(n = 1, min = 10, max = 50) # Storage Thickness
+  swmm_file$lid_controls$Par2[4] <- runif(n = 1, min = 0.3, max = 0.5) # Void Fraction
+  swmm_file$lid_controls$Par3[4] <- runif(n = 1, min = 0.01, max = 0.03) # Roughness
+  
+  swmm_file$lid_controls <- param_table
   
   # write values in the dataframe
   cal_results$Run[i] <- i
   
-  cal_results$Soil_Thickness[i] <- input$lid_controls$Par1[3]
-  cal_results$Porosity[i] <- input$lid_controls$Par2[3]
-  cal_results$Field_Capacity[i] <- input$lid_controls$Par3[3] 
-  cal_results$Wilting_Point[i] <- input$lid_controls$Par4[3]
-  cal_results$Conductivity[i] <- input$lid_controls$Par5[3]
-  cal_results$Conductivity_Slope[i] <- input$lid_controls$Par6[3]
-  cal_results$Suction_Head[i] <- input$lid_controls$Par7[3]
-  cal_results$Drain_Thickness[i] <- input$lid_controls$Par1[4]
-  cal_results$Void_Fraction[i] <- input$lid_controls$Par2[4]
-  cal_results$Roughness[i] <- input$lid_controls$Par3[4]
+  sensitivity_results$Soil_Thickness[i] <- input$lid_controls$Par1[3]
+  sensitivity_results$Porosity[i] <- input$lid_controls$Par2[3]
+  sensitivity_results$Field_Capacity[i] <- input$lid_controls$Par3[3] 
+  sensitivity_results$Wilting_Point[i] <- input$lid_controls$Par4[3]
+  sensitivity_results$Conductivity[i] <- input$lid_controls$Par5[3]
+  sensitivity_results$Conductivity_Slope[i] <- input$lid_controls$Par6[3]
+  sensitivity_results$Suction_Head[i] <- input$lid_controls$Par7[3]
+  sensitivity_results$Drain_Thickness[i] <- input$lid_controls$Par1[4]
+  sensitivity_results$Void_Fraction[i] <- input$lid_controls$Par2[4]
+  sensitivity_results$Roughness[i] <- input$lid_controls$Par3[4]
   
-  # save the changed input file
+  # save the changed input file, overwriting the original file to avoid writing thousands of copies 
+  # (one per run)
   swmmr::write_inp(input,"Validation_Beijing.inp") 
   
   # run swimm with changed input file
@@ -125,7 +131,7 @@ for (i in 1:l){
   
   # write model runoff in data frame
   runoff_sim <- list()
-
+  
   # extract model runoff of entire simulation period
   runoff_sim <- data.frame(matrix(
     data = NA,
@@ -142,9 +148,23 @@ for (i in 1:l){
   sum_sim <- sum(runoff_sim$sim) 
   
   cal_results$Sum_R[i] <- sum_sim
- 
-  print(paste("Run",i,"of",l,"finished"),sep=" ")
+  
+  
+  
+  # write out results
+  
+  
+  # plot results
+  
+  
+  # annual VRR vs weather vs. lid parameters
+  
+  
+  
+  
 }
+
+
 
 
 paths$swmm_exe
