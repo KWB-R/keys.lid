@@ -11,8 +11,8 @@ remotes::install_github("kwb-r/kwb.utils")
 ### define paths
 paths_list <- list(
   root_data = ".",
-  root_swmm = "C:/_UserProg",
-  swmm_version = "5.1.015",
+  root_swmm = 'c:/Program Files (x86)/',
+  swmm_version = "5.1.013",
   swmm_exe = "<root_swmm>/EPA SWMM <swmm_version>/swmm5.exe",
   lid_models = "<root_data>/sensitivity_analysis_models"
 )
@@ -20,42 +20,58 @@ paths_list <- list(
 paths <- kwb.utils::resolve(paths_list)
 
 
-# create swmm model
-# ... function to create *.inp automatically in the future. so far, it is done manually with the GUI
+# function to create *.inp automatically in the future. 
+# at the moment, it is done manually with the GUI
 # ...
 
 # read swmm model
-swmm_file <- swmmr::read_inp(x = file.path(paths$lid_models, "model_greenroof_zone1.inp"))
+swmm_file <- swmmr::read_inp(x = file.path(paths$lid_models, "model_greenroof.inp"))
+
+# read user-defined tables for parameter min and max values
+params_min <- read.table(file.path(paths$lid_models, 'params_greenroof_min.csv'),
+                         sep = ';', 
+                         header = TRUE)
+params_max <- read.table(file.path(paths$lid_models, 'params_greenroof_max.csv'),
+                         sep = ';', 
+                         header = TRUE)
 
 # number of parameter combinations
-l <- 1000
+l <- 100
 
-# initialize data.frame for holding parameter values
-# these are specific to each lid
-names <- c("run_number", 
-           "surface_vegetated_volume", "surface_roughness", "surface_slope",
-           "soil_thickness", "soil_porosity", "soil_field_Capacity", "soil_wilting_point", 
-           "soil_conductivity", "soil_conductivity_slope", "soil_suction_head", 
-           "drainmat_thickness", "drainmat_void_fraction", "drainmat_roughness", 
-           "total_runoff")
+# from swmm_file, find which LID parameters are being used (these change based on 
+# type of LID being modeled)
+param_positions <- apply(
+  X = params_min[, 2:ncol(params_min)],
+  FUN  = function(x) which(!is.na(x)),
+  MARGIN = 1)
+active_rows <- which(sapply(X = param_positions, FUN = length) > 0)
 
+# initialize output data.frame
+
+# make column names
+colnamessens <- vector(mode = 'character', length = 0)
+for(row in active_rows){
+  for(col in param_positions[[row]]){
+    colnamessens <- c(colnamessens,
+                      paste(params_min$layer[row],
+                            colnames(swmm_file$lid_controls)[2 + col],
+                            sep = '_'))
+  }
+}
+
+# create data.frame
 sensitivity_results <- data.frame(matrix(
   data = NA,
-  ncol = length(names),
+  ncol = length(colnamessens),
   nrow = l,
-  dimnames = list(NULL, names)))
-
-
-# set ranges for parameter values*******************
-
+  dimnames = list(NULL, colnamessens)))
 
 # run sensitivity analysis, input time series ideally should cover several years
 
 # time period
-seq <- seq.POSIXt(ISOdate(2008,4,30,00,05,tz="UTC"),
-                  ISOdate(2019,10,15,23,00,tz="UTC"),
-                  by="5 min")
-
+simperiod <- seq.POSIXt(ISOdate(2008, 4, 30, 00, 05,tz="UTC"),
+                        ISOdate(2019, 10, 15, 23, 00,tz="UTC"),
+                        by="5 min")
 
 pb <- txtProgressBar(min = 0, max = l, style = 3)
 for(i in seq_len(l)){
@@ -63,65 +79,50 @@ for(i in seq_len(l)){
   setTxtProgressBar(pb, i)
   
   # set parameters for simulation -> draw from uniform distribution with ranges
-  # given above
-  param_table <- swmm_file$lid_controls[, 3:ncol(swmm_file$lid_controls)]
-  
-  # find positions that are not na
-  which(!is.na(x))
-  
-  # go to those positions and set parameter values
-  
-  for(j in seq_len(nrow(param_table))){
-    
-    for(k in 1:ncol(param_table)){
-      
-      param_jk <- param_table[[j, k]]
-      
-      
+  # given by user in params_min and params_max
+  for(row in active_rows){
+    for(col in param_positions[[row]]){
+      swmm_file$lid_controls[row, col+2] <-
+        runif(n = 1, 
+              min = params_min[[row, col + 1]], 
+              max = params_max[[row, col + 1]])
     }
-    
   }
   
-  # ***************************************************************************************
-  # check which parameters are which for our LIDs by changing them manually in the GUI
-  # and looking at the *.inp file
-  # ***************************************************************************************
+  # if the random draw produced field capacity > porosity, set field capacity = 
+  # 0.99*porosity
+  if('SOIL' %in% swmm_file$lid_controls$`Type/Layer`){
+    porosity <- 
+      swmm_file$lid_controls$Par2[swmm_file$lid_controls$`Type/Layer` == 'SOIL']
+    
+    field_capacity <- 
+      swmm_file$lid_controls$Par3[swmm_file$lid_controls$`Type/Layer` == 'SOIL']
+    
+    if(field_capacity > porosity){
+      swmm_file$lid_controls$Par3[swmm_file$lid_controls$`Type/Layer` == 'SOIL'] <-
+        0.99*swmm_file$lid_controls$Par2[swmm_file$lid_controls$`Type/Layer` == 'SOIL']
+    }
+  }
   
+  # write parameter values in the output data.frame
+  for(row in active_rows){
+    for(col in param_positions[[row]]){
+      
+      currcol <- paste(params_min$layer[row],
+                       colnames(swmm_file$lid_controls)[2 + col],
+                       sep = '_')
+      
+      sensitivity_results[i, currcol] <- swmm_file$lid_controls[row, col+2]
+    }
+  }
   
-  swmm_file$lid_controls$Par1[3] <- runif(n = 1, min = 80, max = 120) # Soil Thickness
-  swmm_file$lid_controls$Par2[3] <- runif(n = 1, min = 0.45, max = 0.65) # Porosity
-  swmm_file$lid_controls$Par3[3] <- runif(n = 1, min = 0.35, max = 0.55) # Field Capacity
-  swmm_file$lid_controls$Par4[3] <- runif(n = 1, min = 0.05, max = 0.20) # Wilting Point
-  swmm_file$lid_controls$Par5[3] <- runif(n = 1, min = 50, max = 350) # Conductivity
-  swmm_file$lid_controls$Par6[3] <- runif(n = 1, min = 30, max = 55) # Conductivity Slope
-  swmm_file$lid_controls$Par7[3] <- runif(n = 1, min = 50, max = 100) # Suction Head
-  swmm_file$lid_controls$Par1[4] <- runif(n = 1, min = 10, max = 50) # Storage Thickness
-  swmm_file$lid_controls$Par2[4] <- runif(n = 1, min = 0.3, max = 0.5) # Void Fraction
-  swmm_file$lid_controls$Par3[4] <- runif(n = 1, min = 0.01, max = 0.03) # Roughness
-  
-  swmm_file$lid_controls <- param_table
-  
-  # write values in the dataframe
-  cal_results$Run[i] <- i
-  
-  sensitivity_results$Soil_Thickness[i] <- input$lid_controls$Par1[3]
-  sensitivity_results$Porosity[i] <- input$lid_controls$Par2[3]
-  sensitivity_results$Field_Capacity[i] <- input$lid_controls$Par3[3] 
-  sensitivity_results$Wilting_Point[i] <- input$lid_controls$Par4[3]
-  sensitivity_results$Conductivity[i] <- input$lid_controls$Par5[3]
-  sensitivity_results$Conductivity_Slope[i] <- input$lid_controls$Par6[3]
-  sensitivity_results$Suction_Head[i] <- input$lid_controls$Par7[3]
-  sensitivity_results$Drain_Thickness[i] <- input$lid_controls$Par1[4]
-  sensitivity_results$Void_Fraction[i] <- input$lid_controls$Par2[4]
-  sensitivity_results$Roughness[i] <- input$lid_controls$Par3[4]
-  
-  # save the changed input file, overwriting the original file to avoid writing thousands of copies 
-  # (one per run)
-  swmmr::write_inp(input,"Validation_Beijing.inp") 
+  # save the changed input file, overwriting the original file to avoid writing
+  # thousands of copies (one per run)
+  swmmr::write_inp(swmm_file, file.path(paths$lid_models, 'tmp.inp'))
   
   # run swimm with changed input file
-  files <- swmmr::run_swmm(inp = "Validation_Beijing.inp",
-                           exec = paths$swmm_exe) 
+  files <- swmmr::run_swmm(inp = file.path(paths$lid_models, 'tmp.inp'),
+                           exec = paths$swmm_exe)
   
   # read out results for itype 3 = system and vIndex 4 = runoff 
   results <- swmmr::read_out(files$out, iType = 3, vIndex = c(4)) 
@@ -136,11 +137,11 @@ for(i in seq_len(l)){
   runoff_sim <- data.frame(matrix(
     data = NA,
     ncol = 1,
-    nrow = length(seq)))
+    nrow = length(simperiod)))
   
-  colnames(runoff_sim)<-"sim" 
+  colnames(runoff_sim) <- "sim" 
   
-  runoff_sim$DateTime <- seq
+  runoff_sim$DateTime <- simperiod
   
   runoff_sim$sim <- (as.numeric(coredata(results$system_variable$total_runoff)))*300/65
   
