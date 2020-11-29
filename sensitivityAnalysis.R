@@ -14,18 +14,21 @@ paths_list <- list(
   root_swmm = 'c:/Program Files (x86)/',
   swmm_version = "5.1.013",
   swmm_exe = "<root_swmm>/EPA SWMM <swmm_version>/swmm5.exe",
-  lid_models = "<root_data>/sensitivity_analysis_models"
+  lid_models = "<root_data>/sensitivity_analysis_models",
+  weather_data = "<root_data>/data_weather_sponge_regions",
+  sensitivity_results = "<root_data>/sensitivity_analysis_results"
 )
 
 paths <- kwb.utils::resolve(paths_list)
 
 
-# function to create *.inp automatically in the future. 
-# at the moment, it is done manually with the GUI
-# ...
+# go to SWMM GUI and create input file (*.inp)
+# input rainfall and temperature data for the desired sponge city climate zone
+# are selected there. these files are in paths$weather_data
 
 # read swmm model
-swmm_file <- swmmr::read_inp(x = file.path(paths$lid_models, "model_greenroof.inp"))
+swmm_file <- swmmr::read_inp(x = file.path(paths$lid_models, 
+                                           'model_greenroof_zone1.inp'))
 
 # read user-defined tables for parameter min and max values
 params_min <- read.table(file.path(paths$lid_models, 'params_greenroof_min.csv'),
@@ -36,7 +39,7 @@ params_max <- read.table(file.path(paths$lid_models, 'params_greenroof_max.csv')
                          header = TRUE)
 
 # number of parameter combinations
-l <- 100
+l <- 200
 
 # from swmm_file, find which LID parameters are being used (these change based on 
 # type of LID being modeled)
@@ -47,6 +50,9 @@ param_positions <- apply(
 active_rows <- which(sapply(X = param_positions, FUN = length) > 0)
 
 # initialize output data.frame
+
+# years of analysis
+years <- c(2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019)
 
 # make column names
 colnamessens <- vector(mode = 'character', length = 0)
@@ -62,21 +68,15 @@ for(row in active_rows){
 # create data.frame
 sensitivity_results <- data.frame(matrix(
   data = NA,
-  ncol = length(colnamessens),
+  ncol = length(colnamessens) + length(years),
   nrow = l,
-  dimnames = list(NULL, colnamessens)))
+  dimnames = list(NULL, c(colnamessens,
+                          paste('VRR', years, sep='_')))))
 
 # run sensitivity analysis, input time series ideally should cover several years
-
-# time period
-simperiod <- seq.POSIXt(ISOdate(2008, 4, 30, 00, 05,tz="UTC"),
-                        ISOdate(2019, 10, 15, 23, 00,tz="UTC"),
-                        by="5 min")
-
-pb <- txtProgressBar(min = 0, max = l, style = 3)
 for(i in seq_len(l)){
   
-  setTxtProgressBar(pb, i)
+  cat('\nmodel run no.', i, '\n')
   
   # set parameters for simulation -> draw from uniform distribution with ranges
   # given by user in params_min and params_max
@@ -121,53 +121,92 @@ for(i in seq_len(l)){
   swmmr::write_inp(swmm_file, file.path(paths$lid_models, 'tmp.inp'))
   
   # run swimm with changed input file
-  files <- swmmr::run_swmm(inp = file.path(paths$lid_models, 'tmp.inp'),
-                           exec = paths$swmm_exe)
+  results <- swmmr::run_swmm(inp = file.path(paths$lid_models, 'tmp.inp'),
+                             exec = paths$swmm_exe)
   
-  # read out results for itype 3 = system and vIndex 4 = runoff 
-  results <- swmmr::read_out(files$out, iType = 3, vIndex = c(4)) 
+  # read out results for itype 3 (= system) and vIndex 4 (= runoff) and 1(= rainfall)
+  results_runoff <- swmmr::read_out(results$out, iType = 3, vIndex = 4)
+  results_rainfall_rate <- swmmr::read_out(results$out, iType = 3, vIndex = 1)
   
-  # change timezone to UTC
-  xts::tzone(results$system_variable$total_runoff) <- "UTC"
+  # store results in data frame
+  results <- data.frame(
+    dateTime = zoo::index(results_runoff$system_variable$total_runoff),
+    rainfall_rate = zoo::coredata(results_rainfall_rate$system_variable$total_rainfall),
+    runoff = zoo::coredata(results_runoff$system_variable$total_runoff),
+    years = format(zoo::index(results_runoff$system_variable$total_runoff), 
+                   format = '%Y'))
   
-  # write model runoff in data frame
-  runoff_sim <- list()
+  # convert runoff from l/s to mm/s
+  flow_units <- swmm_file$options[
+    swmm_file$options$Option == 'FLOW_UNITS', 'Value'][[1]]
+  if(flow_units == 'LPS'){
+    lidarea <- swmm_file$subcatchments$Area
+    results$runoff <- results$runoff/(1e4*lidarea)
+  }
   
-  # extract model runoff of entire simulation period
-  runoff_sim <- data.frame(matrix(
-    data = NA,
-    ncol = 1,
-    nrow = length(simperiod)))
+  # compute rainfall depth [mm] based on rainfall rate [mm/hour] and time 
+  # step of data [hours]
   
-  colnames(runoff_sim) <- "sim" 
+  # get time interval in hours
+  dt <- as.numeric(strsplit(x = swmm_file$raingages$Interval, 
+                 split = ':')[[1]])
+  dt <- dt[1] + dt[2]/60
   
-  runoff_sim$DateTime <- simperiod
+  # rainfall depth = rainfall rate * time
+  results$rainfall_depth <- results$rainfall_rate*dt
   
-  runoff_sim$sim <- (as.numeric(coredata(results$system_variable$total_runoff)))*300/65
+  # compute annual VRR (volume rainfall retention) for all analysis years
+  # and add it to output data.frame
+  years <- unique(results$years)
+  vrr <- vector(mode = 'numeric', length = length(years))
+  names(vrr) <- years
+  for(j in seq_along(years)){
+    yearj <- results[results$years == years[j], ]
+    runoff_volume <- computeVol(data = yearj, 
+                                timeColumn = 'dateTime', 
+                                Qcolumn = 'runoff')
+    rainfall_volume <- sum(yearj$rainfall_depth, na.rm = TRUE)
+    
+    vrr[j] <- runoff_volume/rainfall_volume
+  }
   
-  ### calculate sum of Runoff
-  sum_sim <- sum(runoff_sim$sim) 
-  
-  cal_results$Sum_R[i] <- sum_sim
-  
-  
-  
-  # write out results
-  
-  
-  # plot results
-  
-  
-  # annual VRR vs weather vs. lid parameters
-  
-  
-  
-  
+  sensitivity_results[i, 
+                      (ncol(sensitivity_results) - 
+                         length(vrr) + 1):ncol(sensitivity_results)] <- vrr
 }
 
+# write out results
+write.table(sensitivity_results,
+            file.path(paths$sensitivity_results, 'greenroof_zone1.txt'),
+            sep = ';',
+            row.names = FALSE,
+            quote = FALSE)
 
 
+# annual VRR vs weather vs. lid parameters
+y <- apply(X = sensitivity_results[, (ncol(sensitivity_results) - 
+                                        12 + 1):ncol(sensitivity_results)],
+           MARGIN = 1,
+           FUN = mean)
 
-paths$swmm_exe
-sessioninfo::session_info()
+X <- sensitivity_results[, 1:length(colnamessens)]
+data_aov <- cbind(y, X)
+summary(aov(y ~ ., data = data))
 
+# paths$swmm_exe
+# sessioninfo::session_info()
+
+# functions ---------------------------------------------------------------------------
+
+# compute runoff volume for runoff in mm/s
+computeVol <- function(data, timeColumn, Qcolumn){
+
+  AA <- data[-1, Qcolumn]
+  aa <- data[-nrow(data), Qcolumn]
+  hh <- as.numeric(data[-1, timeColumn]) -
+    as.numeric(data[-nrow(data), timeColumn])
+  
+  Vtot <- sum((AA + aa)/2*hh)
+  
+  return(Vtot)
+}
