@@ -1,9 +1,26 @@
+### install package dependencies
+cran_pkgs <- c("car", "remotes", "swmmr")
+install.packages(pkgs = cran_pkgs, repos = "https://cran.rstudio.com")
+
+remotes::install_github("kwb-r/kwb.utils")
+
+if(FALSE) {
+
+### define paths
+paths_list <- list(
+root_dir = ".",
+green_roof_data = "<root_dir>/validation_data_green_roof",
+green_roof_models = "<root_dir>/validation_models_green_roof"
+)
+
+paths <- kwb.utils::resolve(paths_list)
+
 # kuras (Neubrandenburg): rain mm/5min, runoff mm/5min, dt =5min, green roof area = 101 m2
 # basar (Berlin): rain mm/5min, runoff mm/5min, dt = 5min, green roof area = 194 m2
 
 # load observed rainfall, runoff and temperature, transforming to mm/hour
 obs.neubrandenburg <- readObservations(
-  subfolder = 'data_green_roof',
+  subfolder = paths$green_roof_data,
   rainFile = 'obs_rain_5min_Neubrandenburg.txt',
   runoffFile = 'obs_runoff_5min_Neubrandenburg.txt',
   temperatureFile = 'obs_temperature_10min_Neubrandenburg.txt',
@@ -13,7 +30,7 @@ obs.neubrandenburg <- readObservations(
   NAval = list(rain = -999, runoff = -999, temperature = -999))
 
 obs.berlin <- readObservations(
-  subfolder = 'data_green_roof',
+  subfolder = paths$green_roof_data,
   rainFile = 'obs_rain_5min_Berlin.txt',
   runoffFile = 'obs_runoff_5min_Berlin.txt',
   temperatureFile = 'obs_temperature_10min_Berlin.txt',
@@ -27,7 +44,7 @@ obs.berlin <- readObservations(
 # function to produce continuous T data, readPredictions does the same using the 
 # same formulas given in SWMM's reference manual
 mod.neubrandenburg <- readPredictions(
-  subfolder = 'models_green_roof',
+  subfolder = paths$green_roof_models,
   rainFile = 'obs_rain_5min_Neubrandenburg.txt',
   runoffFile = 'neubrand.out', # SWMM output file
   temperatureFile = 'obs_temp_daily_Neubrandenburg.txt',
@@ -40,7 +57,7 @@ mod.neubrandenburg <- readPredictions(
                         TmaxDay0 = 17))
 
 mod.berlin <- readPredictions(
-  subfolder = 'models_green_roof',
+  subfolder = paths$green_roof_models,
   rainFile = 'obs_rain_5min_Berlin.txt',
   runoffFile = 'bbr18.out', # SWMM output file
   temperatureFile = 'obs_temp_daily_Berlin.txt',
@@ -141,7 +158,7 @@ summary(reg.mod.berlin)
 # check collinearity
 car::vif(reg.obs.neubrandenburg)
 car::vif(reg.obs.berlin)
-
+}
 
 # functions ----------------------------------------------------------
 readObservations <- function(subfolder, 

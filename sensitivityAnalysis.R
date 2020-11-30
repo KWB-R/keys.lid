@@ -1,3 +1,25 @@
+### install package dependencies
+cran_pkgs <- c("gdata", "remotes", "swmmr", "sessioninfo", "xts")
+install.packages(pkgs = cran_pkgs, repos = "https://cran.rstudio.com")
+
+remotes::install_github("kwb-r/kwb.utils")
+
+### Download "EPA SWMM 5.1.015.7z" from KWB cloud 
+### "https://cloud.kompetenz-wasser.de/index.php/f/182136"
+### and extract to "C:/_UserProg/EPA SWMM 5.1.015/"
+
+### define paths
+paths_list <- list(
+  root_data = ".",
+  root_swmm = "C:/_UserProg",
+  swmm_version = "5.1.015",
+  swmm_exe = "<root_swmm>/EPA SWMM <swmm_version>/swmm5.exe",
+  lid_models = "<root_data>/sensitivity_analysis_models"
+)
+
+paths <- kwb.utils::resolve(paths_list)
+
+
 # create swmm model
 
 
@@ -19,23 +41,12 @@
 # annual VRR vs weather vs. lid parameters
 
 
-
-
-
-
-
-
-library(swmmr)
-library(gdata)
-library(xts)
-library(ggplot2)
-library(GGally)
-library(ggpubr)
-
-setwd('c:/kwb/KEYS/WP1_sponge_city_elements/_DataAnalysis/LIDmodels/greenRoof/BWSTI_Zone1')
+# from here, distribute this in steps above
 
 # read swmm input file
-input <- swmmr::read_inp(x = "BWSTI_Zone1.inp")
+swmm_inp <- file.path(paths$lid_models, "model_greenroof_zone1.inp")
+swmm_inp
+input <- swmmr::read_inp(x = swmm_inp)
 summary(input)
 
 # length of the loop
@@ -96,13 +107,14 @@ for (i in 1:l){
   swmmr::write_inp(input,"Validation_Beijing.inp") 
   
   # run swimm with changed input file
-  files <- swmmr::run_swmm(inp = "Validation_Beijing.inp") 
+  files <- swmmr::run_swmm(inp = "Validation_Beijing.inp",
+                           exec = paths$swmm_exe) 
   
   # read out results for itype 3 = system and vIndex 4 = runoff 
   results <- swmmr::read_out(files$out, iType = 3, vIndex = c(4)) 
   
   # change timezone to UTC
-  tzone(results$system_variable$total_runoff) <- "UTC"
+  xts::tzone(results$system_variable$total_runoff) <- "UTC"
   
   # write model runoff in data frame
   runoff_sim <- list()
@@ -126,4 +138,8 @@ for (i in 1:l){
  
   print(paste("Run",i,"of",l,"finished"),sep=" ")
 }
+
+
+paths$swmm_exe
+sessioninfo::session_info()
 
