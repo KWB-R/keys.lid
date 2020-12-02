@@ -11,7 +11,7 @@ remotes::install_github("kwb-r/kwb.utils")
 ### define paths
 paths_list <- list(
   root_data = ".",
-  root_swmm = 'c:/Program Files (x86)/',
+  root_swmm = "C:/_UserProg",
   swmm_version = "5.1.013",
   swmm_exe = "<root_swmm>/EPA SWMM <swmm_version>/swmm5.exe",
   lid_models = "<root_data>/sensitivity_analysis_models",
@@ -39,7 +39,7 @@ params_max <- read.table(file.path(paths$lid_models, 'params_greenroof_max.csv')
                          header = TRUE)
 
 # number of parameter combinations
-l <- 200
+l <- 10
 
 # from swmm_file, find which LID parameters are being used (these change based on 
 # type of LID being modeled)
@@ -124,6 +124,8 @@ for(i in seq_len(l)){
   results <- swmmr::run_swmm(inp = file.path(paths$lid_models, 'tmp.inp'),
                              exec = paths$swmm_exe)
   
+  stopifnot(exists("results"))
+  
   # read out results for itype 3 (= system) and vIndex 4 (= runoff) and 1(= rainfall)
   results_runoff <- swmmr::read_out(results$out, iType = 3, vIndex = 4)
   results_rainfall_rate <- swmmr::read_out(results$out, iType = 3, vIndex = 1)
@@ -173,6 +175,13 @@ for(i in seq_len(l)){
   sensitivity_results[i, 
                       (ncol(sensitivity_results) - 
                          length(vrr) + 1):ncol(sensitivity_results)] <- vrr
+  
+  rm(results)
+  rm(results_rainfall_rate)
+  rm(results_rainfall_rate)
+  fs::file_delete(file.path(paths$lid_models, 'tmp.inp'))
+  fs::file_delete(file.path(paths$lid_models, 'tmp.out'))
+  fs::file_delete(file.path(paths$lid_models, 'tmp.rpt'))
 }
 
 # write out results
