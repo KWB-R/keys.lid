@@ -21,10 +21,10 @@ END_TIME             23:00:00
 SWEEP_START          01/01
 SWEEP_END            12/31
 DRY_DAYS             0
-REPORT_STEP          00:05:00
-WET_STEP             00:05:00
-DRY_STEP             00:05:00
-ROUTING_STEP         0:00:30 
+REPORT_STEP          01:00:00
+WET_STEP             01:00:00
+DRY_STEP             01:00:00
+ROUTING_STEP         01:00:00
 RULE_STEP            00:00:00
 
 INERTIAL_DAMPING     PARTIAL
@@ -57,7 +57,7 @@ ADC PERVIOUS       1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
 [RAINGAGES]
 ;;Name           Format    Interval SCF      Source    
 ;;-------------- --------- ------ ------ ----------
-RainGage         VOLUME    0:05     1        FILE       "data_weather_sponge_regions\swmm_bwsti_zone1_rain_hourly.txt" BWSTI      MM   
+RainGage         VOLUME    1:00     1        FILE       "data_weather_sponge_regions\swmm_bwsti_zone1_rain_hourly.txt" BWSTI      MM   
 
 [SUBCATCHMENTS]
 ;;Name           Rain Gage        Outlet           Area     %Imperv  Width    %Slope   CurbLen  SnowPack        
@@ -78,9 +78,9 @@ S1               700        350        80         5          90
 ;;Name           Type/Layer Parameters
 ;;-------------- ---------- ----------
 Gr2              GR
-Gr2              SURFACE    0          0.1        0.01       0          5         
-Gr2              SOIL       117.112363548949 0.609540524939075 0.544272082531825 0.0543114582076669 133.409102447331 44.3083592818584 51.1863302090205
-Gr2              DRAINMAT   48.9424844738096 0.417365845525637 0.0280326281348243
+Gr2              SURFACE    0          0.313411733086687 0.0845782298611011 6.94508363259956 5         
+Gr2              SOIL       108.799609355628 0.599323754012585 0.378954279981554 0.211478835605085 170.699292724021 58.6889489809982 78.9419485256076
+Gr2              DRAINMAT   65.0779889663681 0.252694211550988 0.400062839913182
 
 [LID_USAGE]
 ;;Subcatchment   LID Process      Number  Area       Width      InitSat    FromImp    ToPerv     RptFile                  DrainTo          FromPerv  
