@@ -123,9 +123,13 @@ for(i in seq_len(l)){
   # run swimm with changed input file
   results <- swmmr::run_swmm(inp = file.path(paths$lid_models, 'tmp.inp'),
                              exec = paths$swmm_exe)
+  swmm_run_has_errors <- !file.exists(file.path(paths$lid_models, 'tmp.out'))
   
-  stopifnot(exists("results"))
-  
+  if(swmm_run_has_errors) {
+      warning(sprintf("SWMM run %d did not complete successfully without errors.",
+                      i))
+    
+  } else {
   # read out results for itype 3 (= system) and vIndex 4 (= runoff) and 1(= rainfall)
   results_runoff <- swmmr::read_out(results$out, iType = 3, vIndex = 4)
   results_rainfall_rate <- swmmr::read_out(results$out, iType = 3, vIndex = 1)
@@ -176,11 +180,12 @@ for(i in seq_len(l)){
                       (ncol(sensitivity_results) - 
                          length(vrr) + 1):ncol(sensitivity_results)] <- vrr
   
-  rm(results)
   rm(results_rainfall_rate)
-  rm(results_rainfall_rate)
-  fs::file_delete(file.path(paths$lid_models, 'tmp.inp'))
   fs::file_delete(file.path(paths$lid_models, 'tmp.out'))
+  }
+  
+  rm(results)
+  fs::file_delete(file.path(paths$lid_models, 'tmp.inp'))
   fs::file_delete(file.path(paths$lid_models, 'tmp.rpt'))
 }
 
