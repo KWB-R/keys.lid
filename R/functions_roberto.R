@@ -74,6 +74,7 @@ readObservations <- function(subfolder,
 #' @return ????
 #' @export
 #' @importFrom swmmr read_out
+#' @importFrom xts tzone
 #' @importFrom zoo coredata index
 readPredictions <- function(subfolder,
                             rainFile, runoffFile, temperatureFile,
@@ -203,6 +204,7 @@ readPredictions <- function(subfolder,
 #' @export
 #' @importFrom dplyr left_join
 #' @importFrom stats approx
+#' @importFrom kwb.event getEvents
 
 makeRainfallRunoffEvents <- function(rainfalldata, runoffdata){
 
