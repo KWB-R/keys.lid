@@ -19,8 +19,9 @@ library(keys.lid)
 ### define paths
 paths_list <- list(
 root_dir = keys.lid::extdata_file(),
-green_roof_data = "<root_dir>/validation/green_roof",
-green_roof_models = "<green_roof_data>"
+green_roof_model = "<root_dir>/validation/green_roof",
+green_roof_model_berlin = "<green_roof_model>/berlin",
+green_roof_model_neubrandenburg = "<green_roof_model>/neubrandenburg"
 )
 
 paths <- kwb.utils::resolve(paths_list)
@@ -30,7 +31,7 @@ paths <- kwb.utils::resolve(paths_list)
 
 # load observed rainfall, runoff and temperature, transforming to mm/hour
 obs.neubrandenburg <- keys.lid::readObservations(
-  subfolder = paths$green_roof_data,
+  subfolder = paths$green_roof_model_neubrandenburg,
   rainFile = 'obs_rain_5min_Neubrandenburg.txt',
   runoffFile = 'obs_runoff_5min_Neubrandenburg.txt',
   temperatureFile = 'obs_temperature_10min_Neubrandenburg.txt',
@@ -40,7 +41,7 @@ obs.neubrandenburg <- keys.lid::readObservations(
   NAval = list(rain = -999, runoff = -999, temperature = -999))
 
 obs.berlin <- keys.lid::readObservations(
-  subfolder = paths$green_roof_data,
+  subfolder = paths$green_roof_model_berlin
   rainFile = 'obs_rain_5min_Berlin.txt',
   runoffFile = 'obs_runoff_5min_Berlin.txt',
   temperatureFile = 'obs_temperature_10min_Berlin.txt',
@@ -54,7 +55,7 @@ obs.berlin <- keys.lid::readObservations(
 # function to produce continuous T data, readPredictions does the same using the 
 # same formulas given in SWMM's reference manual
 mod.neubrandenburg <- keys.lid::readPredictions(
-  subfolder = paths$green_roof_models,
+  subfolder = paths$green_roof_model_neubrandenburg,
   rainFile = 'obs_rain_5min_Neubrandenburg.txt',
   runoffFile = 'neubrand.out', # SWMM output file
   temperatureFile = 'obs_temp_daily_Neubrandenburg.txt',
@@ -67,7 +68,7 @@ mod.neubrandenburg <- keys.lid::readPredictions(
                         TmaxDay0 = 17))
 
 mod.berlin <- keys.lid::readPredictions(
-  subfolder = paths$green_roof_models,
+  subfolder = paths$green_roof_model_berlin,
   rainFile = 'obs_rain_5min_Berlin.txt',
   runoffFile = 'bbr18.out', # SWMM output file
   temperatureFile = 'obs_temp_daily_Berlin.txt',

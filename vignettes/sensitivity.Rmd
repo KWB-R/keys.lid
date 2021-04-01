@@ -14,7 +14,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup, eval = TRUE}
+```{r setup, eval = FALSE}
 library(keys.lid)
 
 ### Download "EPA SWMM 5.1.015.7z" from KWB cloud
