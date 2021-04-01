@@ -108,9 +108,11 @@
   root_swmm <span class="op">=</span> <span class="st">"C:/_UserProg"</span>,
   swmm_version <span class="op">=</span> <span class="st">"5.1.013"</span>,
   swmm_exe <span class="op">=</span> <span class="st">"&lt;root_swmm&gt;/EPA SWMM &lt;swmm_version&gt;/swmm5.exe"</span>,
-  lid_models <span class="op">=</span> <span class="st">"&lt;root_data&gt;/sensitivity_analysis_models"</span>,
+  lid_models <span class="op">=</span> <span class="st">"&lt;root_data&gt;/sensitivity/models"</span>,
+  lid_models_zone1 <span class="op">=</span> <span class="st">"&lt;lid_models&gt;/zone1"</span>,
+  params <span class="op">=</span> <span class="st">"&lt;root_data&gt;/sensitivity/params"</span>,
   weather_data <span class="op">=</span> <span class="st">"&lt;root_data&gt;/data_weather_sponge_regions"</span>,
-  sensitivity_results <span class="op">=</span> <span class="st">"&lt;root_data&gt;/sensitivity_analysis_results"</span>
+  sensitivity_results <span class="op">=</span> <span class="st">"&lt;root_data&gt;/sensitivity/results"</span>
 <span class="op">)</span>
 
 <span class="va">paths</span> <span class="op">&lt;-</span> <span class="fu">kwb.utils</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/kwb.utils/man/resolve.html">resolve</a></span><span class="op">(</span><span class="va">paths_list</span><span class="op">)</span>
@@ -121,14 +123,14 @@
 <span class="co"># are selected there. these files are in paths$weather_data</span>
 
 <span class="co"># read swmm model</span>
-<span class="va">swmm_file</span> <span class="op">&lt;-</span> <span class="fu">swmmr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/swmmr/man/read_inp.html">read_inp</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">paths</span><span class="op">$</span><span class="va">lid_models</span>,
+<span class="va">swmm_file</span> <span class="op">&lt;-</span> <span class="fu">swmmr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/swmmr/man/read_inp.html">read_inp</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">paths</span><span class="op">$</span><span class="va">lid_models_zone1</span>,
                                            <span class="st">'model_greenroof_zone1.inp'</span><span class="op">)</span><span class="op">)</span>
 
 <span class="co"># read user-defined tables for parameter min and max values</span>
-<span class="va">params_min</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.table</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">paths</span><span class="op">$</span><span class="va">lid_models</span>, <span class="st">'params_greenroof_min.csv'</span><span class="op">)</span>,
+<span class="va">params_min</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.table</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">paths</span><span class="op">$</span><span class="va">params</span>, <span class="st">'params_greenroof_min.csv'</span><span class="op">)</span>,
                          sep <span class="op">=</span> <span class="st">';'</span>,
                          header <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
-<span class="va">params_max</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.table</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">paths</span><span class="op">$</span><span class="va">lid_models</span>, <span class="st">'params_greenroof_max.csv'</span><span class="op">)</span>,
+<span class="va">params_max</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.table</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">paths</span><span class="op">$</span><span class="va">params</span>, <span class="st">'params_greenroof_max.csv'</span><span class="op">)</span>,
                          sep <span class="op">=</span> <span class="st">';'</span>,
                          header <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
 
@@ -212,12 +214,12 @@
 
   <span class="co"># save the changed input file, overwriting the original file to avoid writing</span>
   <span class="co"># thousands of copies (one per run)</span>
-  <span class="fu">swmmr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/swmmr/man/write_inp.html">write_inp</a></span><span class="op">(</span><span class="va">swmm_file</span>, <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">paths</span><span class="op">$</span><span class="va">lid_models</span>, <span class="st">'tmp.inp'</span><span class="op">)</span><span class="op">)</span>
+  <span class="fu">swmmr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/swmmr/man/write_inp.html">write_inp</a></span><span class="op">(</span><span class="va">swmm_file</span>, <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">paths</span><span class="op">$</span><span class="va">lid_models_zone1</span>, <span class="st">'tmp.inp'</span><span class="op">)</span><span class="op">)</span>
 
   <span class="co"># run swimm with changed input file</span>
-  <span class="va">results</span> <span class="op">&lt;-</span> <span class="fu">swmmr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/swmmr/man/run_swmm.html">run_swmm</a></span><span class="op">(</span>inp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">paths</span><span class="op">$</span><span class="va">lid_models</span>, <span class="st">'tmp.inp'</span><span class="op">)</span>,
+  <span class="va">results</span> <span class="op">&lt;-</span> <span class="fu">swmmr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/swmmr/man/run_swmm.html">run_swmm</a></span><span class="op">(</span>inp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">paths</span><span class="op">$</span><span class="va">lid_models_zone1</span>, <span class="st">'tmp.inp'</span><span class="op">)</span>,
                              exec <span class="op">=</span> <span class="va">paths</span><span class="op">$</span><span class="va">swmm_exe</span><span class="op">)</span>
-  <span class="va">swmm_run_has_errors</span> <span class="op">&lt;-</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/files.html">file.exists</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">paths</span><span class="op">$</span><span class="va">lid_models</span>, <span class="st">'tmp.out'</span><span class="op">)</span><span class="op">)</span>
+  <span class="va">swmm_run_has_errors</span> <span class="op">&lt;-</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/files.html">file.exists</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">paths</span><span class="op">$</span><span class="va">lid_models_zone1</span>, <span class="st">'tmp.out'</span><span class="op">)</span><span class="op">)</span>
 
   <span class="kw">if</span><span class="op">(</span><span class="va">swmm_run_has_errors</span><span class="op">)</span> <span class="op">{</span>
       <span class="kw"><a href="https://rdrr.io/r/base/warning.html">warning</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html">sprintf</a></span><span class="op">(</span><span class="st">"SWMM run %d did not complete successfully without errors."</span>,
@@ -262,7 +264,7 @@
   <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">vrr</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">years</span>
   <span class="kw">for</span><span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_along</a></span><span class="op">(</span><span class="va">years</span><span class="op">)</span><span class="op">)</span><span class="op">{</span>
     <span class="va">yearj</span> <span class="op">&lt;-</span> <span class="va">results</span><span class="op">[</span><span class="va">results</span><span class="op">$</span><span class="va">years</span> <span class="op">==</span> <span class="va">years</span><span class="op">[</span><span class="va">j</span><span class="op">]</span>, <span class="op">]</span>
-    <span class="va">runoff_volume</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/computeVol.html">computeVol</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">yearj</span>,
+    <span class="va">runoff_volume</span> <span class="op">&lt;-</span> <span class="fu">keys.lid</span><span class="fu">::</span><span class="fu"><a href="../reference/computeVol.html">computeVol</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">yearj</span>,
                                 timeColumn <span class="op">=</span> <span class="st">'dateTime'</span>,
                                 Qcolumn <span class="op">=</span> <span class="st">'runoff'</span><span class="op">)</span>
     <span class="va">rainfall_volume</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">yearj</span><span class="op">$</span><span class="va">rainfall_depth</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
@@ -275,12 +277,12 @@
                          <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">vrr</span><span class="op">)</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">ncol</a></span><span class="op">(</span><span class="va">sensitivity_results</span><span class="op">)</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">vrr</span>
 
   <span class="fu"><a href="https://rdrr.io/r/base/rm.html">rm</a></span><span class="op">(</span><span class="va">results_rainfall_rate</span><span class="op">)</span>
-  <span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="http://fs.r-lib.org/reference/delete.html">file_delete</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">paths</span><span class="op">$</span><span class="va">lid_models</span>, <span class="st">'tmp.out'</span><span class="op">)</span><span class="op">)</span>
+  <span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="http://fs.r-lib.org/reference/delete.html">file_delete</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">paths</span><span class="op">$</span><span class="va">lid_models_zone1</span>, <span class="st">'tmp.out'</span><span class="op">)</span><span class="op">)</span>
   <span class="op">}</span>
 
   <span class="fu"><a href="https://rdrr.io/r/base/rm.html">rm</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span>
-  <span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="http://fs.r-lib.org/reference/delete.html">file_delete</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">paths</span><span class="op">$</span><span class="va">lid_models</span>, <span class="st">'tmp.inp'</span><span class="op">)</span><span class="op">)</span>
-  <span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="http://fs.r-lib.org/reference/delete.html">file_delete</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">paths</span><span class="op">$</span><span class="va">lid_models</span>, <span class="st">'tmp.rpt'</span><span class="op">)</span><span class="op">)</span>
+  <span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="http://fs.r-lib.org/reference/delete.html">file_delete</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">paths</span><span class="op">$</span><span class="va">lid_models_zone1</span>, <span class="st">'tmp.inp'</span><span class="op">)</span><span class="op">)</span>
+  <span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="http://fs.r-lib.org/reference/delete.html">file_delete</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">paths</span><span class="op">$</span><span class="va">lid_models_zone1</span>, <span class="st">'tmp.rpt'</span><span class="op">)</span><span class="op">)</span>
 <span class="op">}</span>
 
 <span class="co"># write out results</span>
@@ -299,7 +301,9 @@
 
 <span class="va">X</span> <span class="op">&lt;-</span> <span class="va">sensitivity_results</span><span class="op">[</span>, <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">colnamessens</span><span class="op">)</span><span class="op">]</span>
 <span class="va">data_aov</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">cbind</a></span><span class="op">(</span><span class="va">y</span>, <span class="va">X</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/aov.html">aov</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">.</span>, data <span class="op">=</span> <span class="va">data</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+
+<span class="fu"><a href="https://rdrr.io/r/stats/aov.html">aov</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">.</span>, data <span class="op">=</span> <span class="va">data_aov</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/aov.html">aov</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">.</span>, data <span class="op">=</span> <span class="va">data_aov</span><span class="op">)</span><span class="op">)</span></code></pre></div>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

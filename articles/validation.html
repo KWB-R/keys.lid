@@ -95,160 +95,160 @@
 
     
     
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/KWB-R/keys.lid">keys.lid</a></span><span class="op">)</span>
-<span class="co">### define paths</span>
-<span class="va">paths_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>
-root_dir <span class="op">=</span> <span class="fu">keys.lid</span><span class="fu">::</span><span class="fu"><a href="../reference/extdata_file.html">extdata_file</a></span><span class="op">(</span><span class="op">)</span>,
-green_roof_data <span class="op">=</span> <span class="st">"&lt;root_dir&gt;/validation/green_roof"</span>,
-green_roof_models <span class="op">=</span> <span class="st">"&lt;green_roof_data&gt;"</span>
-<span class="op">)</span>
-
-<span class="va">paths</span> <span class="op">&lt;-</span> <span class="fu">kwb.utils</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/kwb.utils/man/resolve.html">resolve</a></span><span class="op">(</span><span class="va">paths_list</span><span class="op">)</span>
-
-<span class="co"># kuras (Neubrandenburg): rain mm/5min, runoff mm/5min, dt =5min, green roof area = 101 m2</span>
-<span class="co"># basar (Berlin): rain mm/5min, runoff mm/5min, dt = 5min, green roof area = 194 m2</span>
-
-<span class="co"># load observed rainfall, runoff and temperature, transforming to mm/hour</span>
-<span class="va">obs.neubrandenburg</span> <span class="op">&lt;-</span> <span class="fu">keys.lid</span><span class="fu">::</span><span class="fu"><a href="../reference/readObservations.html">readObservations</a></span><span class="op">(</span>
-  subfolder <span class="op">=</span> <span class="va">paths</span><span class="op">$</span><span class="va">green_roof_data</span>,
-  rainFile <span class="op">=</span> <span class="st">'obs_rain_5min_Neubrandenburg.txt'</span>,
-  runoffFile <span class="op">=</span> <span class="st">'obs_runoff_5min_Neubrandenburg.txt'</span>,
-  temperatureFile <span class="op">=</span> <span class="st">'obs_temperature_10min_Neubrandenburg.txt'</span>,
-  dateTimetz <span class="op">=</span> <span class="st">'Etc/GMT-1'</span>, 
-  dateTimeformat <span class="op">=</span> <span class="st">'%Y-%m-%d %H:%M:%S'</span>,
-  to_mmperhour <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>rain<span class="op">=</span><span class="fl">1</span><span class="op">/</span><span class="op">(</span><span class="fl">5</span><span class="op">/</span><span class="fl">60</span><span class="op">)</span>, runoff<span class="op">=</span><span class="fl">1</span><span class="op">/</span><span class="op">(</span><span class="fl">5</span><span class="op">/</span><span class="fl">60</span><span class="op">)</span><span class="op">)</span>, 
-  NAval <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>rain <span class="op">=</span> <span class="op">-</span><span class="fl">999</span>, runoff <span class="op">=</span> <span class="op">-</span><span class="fl">999</span>, temperature <span class="op">=</span> <span class="op">-</span><span class="fl">999</span><span class="op">)</span><span class="op">)</span>
-
-<span class="va">obs.berlin</span> <span class="op">&lt;-</span> <span class="fu">keys.lid</span><span class="fu">::</span><span class="fu"><a href="../reference/readObservations.html">readObservations</a></span><span class="op">(</span>
-  subfolder <span class="op">=</span> <span class="va">paths</span><span class="op">$</span><span class="va">green_roof_data</span>,
-  rainFile <span class="op">=</span> <span class="st">'obs_rain_5min_Berlin.txt'</span>,
-  runoffFile <span class="op">=</span> <span class="st">'obs_runoff_5min_Berlin.txt'</span>,
-  temperatureFile <span class="op">=</span> <span class="st">'obs_temperature_10min_Berlin.txt'</span>,
-  dateTimetz <span class="op">=</span> <span class="st">'Etc/GMT-1'</span>, 
-  dateTimeformat <span class="op">=</span> <span class="st">'%Y-%m-%d %H:%M:%S'</span>,
-  to_mmperhour <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>rain<span class="op">=</span><span class="fl">1</span><span class="op">/</span><span class="op">(</span><span class="fl">5</span><span class="op">/</span><span class="fl">60</span><span class="op">)</span>, runoff<span class="op">=</span><span class="fl">1</span><span class="op">/</span><span class="op">(</span><span class="fl">5</span><span class="op">/</span><span class="fl">60</span><span class="op">)</span><span class="op">)</span>,
-  NAval <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>rain <span class="op">=</span> <span class="op">-</span><span class="fl">999</span>, runoff <span class="op">=</span> <span class="op">-</span><span class="fl">999</span>, temperature <span class="op">=</span> <span class="op">-</span><span class="fl">999</span><span class="op">)</span><span class="op">)</span>
-
-<span class="co"># load modeled runoff, together with rainfall and temperature used as model inputs,</span>
-<span class="co"># transforming to mm/hour. since SWMM uses daily Tmax, Tmin and a sinusoidal</span>
-<span class="co"># function to produce continuous T data, readPredictions does the same using the </span>
-<span class="co"># same formulas given in SWMM's reference manual</span>
-<span class="va">mod.neubrandenburg</span> <span class="op">&lt;-</span> <span class="fu">keys.lid</span><span class="fu">::</span><span class="fu"><a href="../reference/readPredictions.html">readPredictions</a></span><span class="op">(</span>
-  subfolder <span class="op">=</span> <span class="va">paths</span><span class="op">$</span><span class="va">green_roof_models</span>,
-  rainFile <span class="op">=</span> <span class="st">'obs_rain_5min_Neubrandenburg.txt'</span>,
-  runoffFile <span class="op">=</span> <span class="st">'neubrand.out'</span>, <span class="co"># SWMM output file</span>
-  temperatureFile <span class="op">=</span> <span class="st">'obs_temp_daily_Neubrandenburg.txt'</span>,
-  dateTimetz <span class="op">=</span> <span class="st">'Etc/GMT-1'</span>,
-  dateTimeformat <span class="op">=</span> <span class="st">'%Y-%m-%d %H:%M'</span>,
-  to_mmperhour <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>rain <span class="op">=</span> <span class="fl">1</span><span class="op">/</span><span class="op">(</span><span class="fl">5</span><span class="op">/</span><span class="fl">60</span><span class="op">)</span>, runoff <span class="op">=</span> <span class="fl">3600</span><span class="op">/</span><span class="fl">101</span><span class="op">)</span>,
-  parTcontinuous <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>longitude <span class="op">=</span> <span class="op">-</span><span class="fl">13.26</span>,
-                        standardMeridian <span class="op">=</span> <span class="op">-</span><span class="fl">15</span>,
-                        latitude <span class="op">=</span> <span class="fl">53.56</span>,
-                        TmaxDay0 <span class="op">=</span> <span class="fl">17</span><span class="op">)</span><span class="op">)</span>
-
-<span class="va">mod.berlin</span> <span class="op">&lt;-</span> <span class="fu">keys.lid</span><span class="fu">::</span><span class="fu"><a href="../reference/readPredictions.html">readPredictions</a></span><span class="op">(</span>
-  subfolder <span class="op">=</span> <span class="va">paths</span><span class="op">$</span><span class="va">green_roof_models</span>,
-  rainFile <span class="op">=</span> <span class="st">'obs_rain_5min_Berlin.txt'</span>,
-  runoffFile <span class="op">=</span> <span class="st">'bbr18.out'</span>, <span class="co"># SWMM output file</span>
-  temperatureFile <span class="op">=</span> <span class="st">'obs_temp_daily_Berlin.txt'</span>,
-  dateTimetz <span class="op">=</span> <span class="st">'Etc/GMT-1'</span>,
-  dateTimeformat <span class="op">=</span> <span class="st">'%Y-%m-%d %H:%M'</span>,
-  to_mmperhour <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>rain <span class="op">=</span> <span class="fl">1</span><span class="op">/</span><span class="op">(</span><span class="fl">5</span><span class="op">/</span><span class="fl">60</span><span class="op">)</span>, runoff <span class="op">=</span> <span class="fl">3600</span><span class="op">/</span><span class="fl">194</span><span class="op">)</span>,
-  parTcontinuous <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>longitude <span class="op">=</span> <span class="op">-</span><span class="fl">13.41</span>,
-                        standardMeridian <span class="op">=</span> <span class="op">-</span><span class="fl">15</span>,
-                        latitude <span class="op">=</span> <span class="fl">52.50</span>,
-                        TmaxDay0 <span class="op">=</span> <span class="fl">9</span><span class="op">)</span><span class="op">)</span>
-
-<span class="co"># make joint rainfall-runoff events (observed), and remove bad events</span>
-<span class="va">obs.neubrandenburg</span><span class="op">$</span><span class="va">rain_runoff</span> <span class="op">&lt;-</span> <span class="fu">keys.lid</span><span class="fu">::</span><span class="fu"><a href="../reference/makeRainfallRunoffEvents.html">makeRainfallRunoffEvents</a></span><span class="op">(</span>
-  rainfalldata <span class="op">=</span> <span class="va">obs.neubrandenburg</span><span class="op">$</span><span class="va">rain</span>,
-  runoffdata <span class="op">=</span> <span class="va">obs.neubrandenburg</span><span class="op">$</span><span class="va">runoff</span><span class="op">)</span>
-
-<span class="va">obs.berlin</span><span class="op">$</span><span class="va">rain_runoff</span> <span class="op">&lt;-</span> <span class="fu">keys.lid</span><span class="fu">::</span><span class="fu"><a href="../reference/makeRainfallRunoffEvents.html">makeRainfallRunoffEvents</a></span><span class="op">(</span>
-  rainfalldata <span class="op">=</span> <span class="va">obs.berlin</span><span class="op">$</span><span class="va">rain</span>,
-  runoffdata <span class="op">=</span> <span class="va">obs.berlin</span><span class="op">$</span><span class="va">runoff</span><span class="op">)</span>
-
-<span class="va">obs.neubrandenburg</span><span class="op">$</span><span class="va">rain_runoff</span> <span class="op">&lt;-</span> <span class="fu">keys.lid</span><span class="fu">::</span><span class="fu">removeBadEvents</span><span class="op">(</span>
-  events <span class="op">=</span> <span class="va">obs.neubrandenburg</span><span class="op">$</span><span class="va">rain_runoff</span>,
-  mindur_sec <span class="op">=</span> <span class="fl">300</span>, 
-  removeruncoeffNA <span class="op">=</span> <span class="cn">TRUE</span>,
-  removezerorain <span class="op">=</span> <span class="cn">TRUE</span>,
-  removeruncoeff_gt_1 <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
-
-<span class="va">obs.berlin</span><span class="op">$</span><span class="va">rain_runoff</span> <span class="op">&lt;-</span> <span class="fu">keys.lid</span><span class="fu">::</span><span class="fu">removeBadEvents</span><span class="op">(</span>
-  events <span class="op">=</span> <span class="va">obs.berlin</span><span class="op">$</span><span class="va">rain_runoff</span>,
-  mindur_sec <span class="op">=</span> <span class="fl">300</span>, 
-  removeruncoeffNA <span class="op">=</span> <span class="cn">TRUE</span>,
-  removezerorain <span class="op">=</span> <span class="cn">TRUE</span>,
-  removeruncoeff_gt_1 <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
-
-<span class="co"># make joint rainfall-runoff events (modeled), and remove bad events</span>
-<span class="va">mod.neubrandenburg</span><span class="op">$</span><span class="va">rain_runoff</span> <span class="op">&lt;-</span>  <span class="fu">keys.lid</span><span class="fu">::</span><span class="fu"><a href="../reference/makeRainfallRunoffEvents.html">makeRainfallRunoffEvents</a></span><span class="op">(</span>
-  rainfalldata <span class="op">=</span> <span class="va">mod.neubrandenburg</span><span class="op">$</span><span class="va">rain</span>,
-  runoffdata <span class="op">=</span> <span class="va">mod.neubrandenburg</span><span class="op">$</span><span class="va">runoff</span><span class="op">)</span>
-
-<span class="va">mod.berlin</span><span class="op">$</span><span class="va">rain_runoff</span> <span class="op">&lt;-</span> <span class="fu">keys.lid</span><span class="fu">::</span><span class="fu"><a href="../reference/makeRainfallRunoffEvents.html">makeRainfallRunoffEvents</a></span><span class="op">(</span>
-  rainfalldata <span class="op">=</span> <span class="va">mod.berlin</span><span class="op">$</span><span class="va">rain</span>,
-  runoffdata <span class="op">=</span> <span class="va">mod.berlin</span><span class="op">$</span><span class="va">runoff</span><span class="op">)</span>
-
-<span class="va">mod.neubrandenburg</span><span class="op">$</span><span class="va">rain_runoff</span> <span class="op">&lt;-</span> <span class="fu">keys.lid</span><span class="fu">::</span><span class="fu">removeBadEvents</span><span class="op">(</span>
-  events <span class="op">=</span> <span class="va">mod.neubrandenburg</span><span class="op">$</span><span class="va">rain_runoff</span>,
-  mindur_sec <span class="op">=</span> <span class="fl">300</span>, 
-  removeruncoeffNA <span class="op">=</span> <span class="cn">TRUE</span>,
-  removezerorain <span class="op">=</span> <span class="cn">TRUE</span>,
-  removeruncoeff_gt_1 <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
-
-<span class="va">mod.berlin</span><span class="op">$</span><span class="va">rain_runoff</span> <span class="op">&lt;-</span> <span class="fu">keys.lid</span><span class="fu">::</span><span class="fu">removeBadEvents</span><span class="op">(</span>
-  events <span class="op">=</span> <span class="va">mod.berlin</span><span class="op">$</span><span class="va">rain_runoff</span>,
-  mindur_sec <span class="op">=</span> <span class="fl">300</span>, 
-  removeruncoeffNA <span class="op">=</span> <span class="cn">TRUE</span>,
-  removezerorain <span class="op">=</span> <span class="cn">TRUE</span>,
-  removeruncoeff_gt_1 <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
-
-<span class="co"># compute max. temperature in antecedent dry weather period (ADWP),</span>
-<span class="co"># observed</span>
-<span class="va">obs.neubrandenburg</span><span class="op">$</span><span class="va">rain_runoff</span><span class="op">$</span><span class="va">TmaxADWP</span> <span class="op">&lt;-</span> <span class="fu">keys.lid</span><span class="fu">::</span><span class="fu">TmaxADWP</span><span class="op">(</span><span class="va">obs.neubrandenburg</span><span class="op">)</span>
-<span class="va">obs.berlin</span><span class="op">$</span><span class="va">rain_runoff</span><span class="op">$</span><span class="va">TmaxADWP</span> <span class="op">&lt;-</span> <span class="fu">keys.lid</span><span class="fu">::</span><span class="fu">TmaxADWP</span><span class="op">(</span><span class="va">obs.berlin</span><span class="op">)</span>
-
-<span class="co"># compute max. temperature in antecedent dry weather period (ADWP),</span>
-<span class="co"># modeled</span>
-<span class="va">mod.neubrandenburg</span><span class="op">$</span><span class="va">rain_runoff</span><span class="op">$</span><span class="va">TmaxADWP</span> <span class="op">&lt;-</span> <span class="fu">keys.lid</span><span class="fu">::</span><span class="fu">TmaxADWP</span><span class="op">(</span><span class="va">mod.neubrandenburg</span><span class="op">)</span>
-<span class="va">mod.berlin</span><span class="op">$</span><span class="va">rain_runoff</span><span class="op">$</span><span class="va">TmaxADWP</span> <span class="op">&lt;-</span> <span class="fu">keys.lid</span><span class="fu">::</span><span class="fu">TmaxADWP</span><span class="op">(</span><span class="va">mod.berlin</span><span class="op">)</span>
-
-<span class="co"># aggregate to monthly level</span>
-<span class="va">obs.neubrandenburg</span><span class="op">$</span><span class="va">monthly</span> <span class="op">&lt;-</span> <span class="fu">keys.lid</span><span class="fu">::</span><span class="fu"><a href="../reference/monthlyPattern.html">monthlyPattern</a></span><span class="op">(</span><span class="va">obs.neubrandenburg</span><span class="op">)</span>
-<span class="va">mod.neubrandenburg</span><span class="op">$</span><span class="va">monthly</span> <span class="op">&lt;-</span> <span class="fu">keys.lid</span><span class="fu">::</span><span class="fu"><a href="../reference/monthlyPattern.html">monthlyPattern</a></span><span class="op">(</span><span class="va">mod.neubrandenburg</span><span class="op">)</span>
-<span class="va">obs.berlin</span><span class="op">$</span><span class="va">monthly</span> <span class="op">&lt;-</span> <span class="fu">keys.lid</span><span class="fu">::</span><span class="fu"><a href="../reference/monthlyPattern.html">monthlyPattern</a></span><span class="op">(</span><span class="va">obs.berlin</span><span class="op">)</span>
-<span class="va">mod.berlin</span><span class="op">$</span><span class="va">monthly</span> <span class="op">&lt;-</span> <span class="fu">keys.lid</span><span class="fu">::</span><span class="fu"><a href="../reference/monthlyPattern.html">monthlyPattern</a></span><span class="op">(</span><span class="va">mod.berlin</span><span class="op">)</span>
-
-<span class="co"># check temporal autocorrelation at monthly level</span>
-<span class="fu"><a href="https://rdrr.io/r/stats/acf.html">acf</a></span><span class="op">(</span><span class="va">obs.neubrandenburg</span><span class="op">$</span><span class="va">monthly</span><span class="op">$</span><span class="va">runoffcoefficient</span>, lag.max <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/stats/acf.html">acf</a></span><span class="op">(</span><span class="va">obs.berlin</span><span class="op">$</span><span class="va">monthly</span><span class="op">$</span><span class="va">runoffcoefficient</span>, lag.max <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>
-
-<span class="co"># make regressions to explore patterns at monthly level</span>
-<span class="va">reg.obs.neubrandenburg</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span>
-  formula <span class="op">=</span> <span class="va">runoffcoefficient</span> <span class="op">~</span> <span class="va">rain</span> <span class="op">+</span> <span class="va">meanTmaxADWP</span>, 
-  data <span class="op">=</span> <span class="va">obs.neubrandenburg</span><span class="op">$</span><span class="va">monthly</span><span class="op">)</span>
-<span class="va">reg.mod.neubrandenburg</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span>
-  formula <span class="op">=</span> <span class="va">runoffcoefficient</span> <span class="op">~</span> <span class="va">rain</span> <span class="op">+</span> <span class="va">meanTmaxADWP</span>, 
-  data <span class="op">=</span> <span class="va">mod.neubrandenburg</span><span class="op">$</span><span class="va">monthly</span><span class="op">)</span>
-
-<span class="va">reg.obs.berlin</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span>
-  formula <span class="op">=</span> <span class="va">runoffcoefficient</span> <span class="op">~</span> <span class="va">rain</span> <span class="op">+</span> <span class="va">meanTmaxADWP</span>, 
-  data <span class="op">=</span> <span class="va">obs.berlin</span><span class="op">$</span><span class="va">monthly</span><span class="op">)</span>
-<span class="va">reg.mod.berlin</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span>
-  formula <span class="op">=</span> <span class="va">runoffcoefficient</span> <span class="op">~</span> <span class="va">rain</span> <span class="op">+</span> <span class="va">meanTmaxADWP</span>, 
-  data <span class="op">=</span> <span class="va">mod.berlin</span><span class="op">$</span><span class="va">monthly</span><span class="op">)</span>
-
-<span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">reg.obs.neubrandenburg</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">reg.mod.neubrandenburg</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">reg.obs.berlin</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">reg.mod.berlin</span><span class="op">)</span>
-
-<span class="co"># check collinearity</span>
-<span class="fu">car</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/car/man/vif.html">vif</a></span><span class="op">(</span><span class="va">reg.obs.neubrandenburg</span><span class="op">)</span>
-<span class="fu">car</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/car/man/vif.html">vif</a></span><span class="op">(</span><span class="va">reg.obs.berlin</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="kw">library</span>(keys.lid)</span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="co">### define paths</span></span>
+<span id="cb1-3"><a href="#cb1-3"></a>paths_list &lt;-<span class="st"> </span><span class="kw">list</span>(</span>
+<span id="cb1-4"><a href="#cb1-4"></a><span class="dt">root_dir =</span> keys.lid<span class="op">::</span><span class="kw">extdata_file</span>(),</span>
+<span id="cb1-5"><a href="#cb1-5"></a><span class="dt">green_roof_model =</span> <span class="st">"&lt;root_dir&gt;/validation/green_roof"</span>,</span>
+<span id="cb1-6"><a href="#cb1-6"></a><span class="dt">green_roof_model_berlin =</span> <span class="st">"&lt;green_roof_model&gt;/berlin"</span>,</span>
+<span id="cb1-7"><a href="#cb1-7"></a><span class="dt">green_roof_model_neubrandenburg =</span> <span class="st">"&lt;green_roof_model&gt;/neubrandenburg"</span></span>
+<span id="cb1-8"><a href="#cb1-8"></a>)</span>
+<span id="cb1-9"><a href="#cb1-9"></a></span>
+<span id="cb1-10"><a href="#cb1-10"></a>paths &lt;-<span class="st"> </span>kwb.utils<span class="op">::</span><span class="kw">resolve</span>(paths_list)</span>
+<span id="cb1-11"><a href="#cb1-11"></a></span>
+<span id="cb1-12"><a href="#cb1-12"></a><span class="co"># kuras (Neubrandenburg): rain mm/5min, runoff mm/5min, dt =5min, green roof area = 101 m2</span></span>
+<span id="cb1-13"><a href="#cb1-13"></a><span class="co"># basar (Berlin): rain mm/5min, runoff mm/5min, dt = 5min, green roof area = 194 m2</span></span>
+<span id="cb1-14"><a href="#cb1-14"></a></span>
+<span id="cb1-15"><a href="#cb1-15"></a><span class="co"># load observed rainfall, runoff and temperature, transforming to mm/hour</span></span>
+<span id="cb1-16"><a href="#cb1-16"></a>obs.neubrandenburg &lt;-<span class="st"> </span>keys.lid<span class="op">::</span><span class="kw">readObservations</span>(</span>
+<span id="cb1-17"><a href="#cb1-17"></a>  <span class="dt">subfolder =</span> paths<span class="op">$</span>green_roof_model_neubrandenburg,</span>
+<span id="cb1-18"><a href="#cb1-18"></a>  <span class="dt">rainFile =</span> <span class="st">'obs_rain_5min_Neubrandenburg.txt'</span>,</span>
+<span id="cb1-19"><a href="#cb1-19"></a>  <span class="dt">runoffFile =</span> <span class="st">'obs_runoff_5min_Neubrandenburg.txt'</span>,</span>
+<span id="cb1-20"><a href="#cb1-20"></a>  <span class="dt">temperatureFile =</span> <span class="st">'obs_temperature_10min_Neubrandenburg.txt'</span>,</span>
+<span id="cb1-21"><a href="#cb1-21"></a>  <span class="dt">dateTimetz =</span> <span class="st">'Etc/GMT-1'</span>, </span>
+<span id="cb1-22"><a href="#cb1-22"></a>  <span class="dt">dateTimeformat =</span> <span class="st">'%Y-%m-%d %H:%M:%S'</span>,</span>
+<span id="cb1-23"><a href="#cb1-23"></a>  <span class="dt">to_mmperhour =</span> <span class="kw">list</span>(<span class="dt">rain=</span><span class="dv">1</span><span class="op">/</span>(<span class="dv">5</span><span class="op">/</span><span class="dv">60</span>), <span class="dt">runoff=</span><span class="dv">1</span><span class="op">/</span>(<span class="dv">5</span><span class="op">/</span><span class="dv">60</span>)), </span>
+<span id="cb1-24"><a href="#cb1-24"></a>  <span class="dt">NAval =</span> <span class="kw">list</span>(<span class="dt">rain =</span> <span class="dv">-999</span>, <span class="dt">runoff =</span> <span class="dv">-999</span>, <span class="dt">temperature =</span> <span class="dv">-999</span>))</span>
+<span id="cb1-25"><a href="#cb1-25"></a></span>
+<span id="cb1-26"><a href="#cb1-26"></a>obs.berlin &lt;-<span class="st"> </span>keys.lid<span class="op">::</span><span class="kw">readObservations</span>(</span>
+<span id="cb1-27"><a href="#cb1-27"></a>  <span class="dt">subfolder =</span> paths<span class="op">$</span>green_roof_model_berlin</span>
+<span id="cb1-28"><a href="#cb1-28"></a>  <span class="dt">rainFile =</span> <span class="st">'obs_rain_5min_Berlin.txt'</span>,</span>
+<span id="cb1-29"><a href="#cb1-29"></a>  <span class="dt">runoffFile =</span> <span class="st">'obs_runoff_5min_Berlin.txt'</span>,</span>
+<span id="cb1-30"><a href="#cb1-30"></a>  <span class="dt">temperatureFile =</span> <span class="st">'obs_temperature_10min_Berlin.txt'</span>,</span>
+<span id="cb1-31"><a href="#cb1-31"></a>  <span class="dt">dateTimetz =</span> <span class="st">'Etc/GMT-1'</span>, </span>
+<span id="cb1-32"><a href="#cb1-32"></a>  <span class="dt">dateTimeformat =</span> <span class="st">'%Y-%m-%d %H:%M:%S'</span>,</span>
+<span id="cb1-33"><a href="#cb1-33"></a>  <span class="dt">to_mmperhour =</span> <span class="kw">list</span>(<span class="dt">rain=</span><span class="dv">1</span><span class="op">/</span>(<span class="dv">5</span><span class="op">/</span><span class="dv">60</span>), <span class="dt">runoff=</span><span class="dv">1</span><span class="op">/</span>(<span class="dv">5</span><span class="op">/</span><span class="dv">60</span>)),</span>
+<span id="cb1-34"><a href="#cb1-34"></a>  <span class="dt">NAval =</span> <span class="kw">list</span>(<span class="dt">rain =</span> <span class="dv">-999</span>, <span class="dt">runoff =</span> <span class="dv">-999</span>, <span class="dt">temperature =</span> <span class="dv">-999</span>))</span>
+<span id="cb1-35"><a href="#cb1-35"></a></span>
+<span id="cb1-36"><a href="#cb1-36"></a><span class="co"># load modeled runoff, together with rainfall and temperature used as model inputs,</span></span>
+<span id="cb1-37"><a href="#cb1-37"></a><span class="co"># transforming to mm/hour. since SWMM uses daily Tmax, Tmin and a sinusoidal</span></span>
+<span id="cb1-38"><a href="#cb1-38"></a><span class="co"># function to produce continuous T data, readPredictions does the same using the </span></span>
+<span id="cb1-39"><a href="#cb1-39"></a><span class="co"># same formulas given in SWMM's reference manual</span></span>
+<span id="cb1-40"><a href="#cb1-40"></a>mod.neubrandenburg &lt;-<span class="st"> </span>keys.lid<span class="op">::</span><span class="kw">readPredictions</span>(</span>
+<span id="cb1-41"><a href="#cb1-41"></a>  <span class="dt">subfolder =</span> paths<span class="op">$</span>green_roof_model_neubrandenburg,</span>
+<span id="cb1-42"><a href="#cb1-42"></a>  <span class="dt">rainFile =</span> <span class="st">'obs_rain_5min_Neubrandenburg.txt'</span>,</span>
+<span id="cb1-43"><a href="#cb1-43"></a>  <span class="dt">runoffFile =</span> <span class="st">'neubrand.out'</span>, <span class="co"># SWMM output file</span></span>
+<span id="cb1-44"><a href="#cb1-44"></a>  <span class="dt">temperatureFile =</span> <span class="st">'obs_temp_daily_Neubrandenburg.txt'</span>,</span>
+<span id="cb1-45"><a href="#cb1-45"></a>  <span class="dt">dateTimetz =</span> <span class="st">'Etc/GMT-1'</span>,</span>
+<span id="cb1-46"><a href="#cb1-46"></a>  <span class="dt">dateTimeformat =</span> <span class="st">'%Y-%m-%d %H:%M'</span>,</span>
+<span id="cb1-47"><a href="#cb1-47"></a>  <span class="dt">to_mmperhour =</span> <span class="kw">list</span>(<span class="dt">rain =</span> <span class="dv">1</span><span class="op">/</span>(<span class="dv">5</span><span class="op">/</span><span class="dv">60</span>), <span class="dt">runoff =</span> <span class="dv">3600</span><span class="op">/</span><span class="dv">101</span>),</span>
+<span id="cb1-48"><a href="#cb1-48"></a>  <span class="dt">parTcontinuous =</span> <span class="kw">list</span>(<span class="dt">longitude =</span> <span class="fl">-13.26</span>,</span>
+<span id="cb1-49"><a href="#cb1-49"></a>                        <span class="dt">standardMeridian =</span> <span class="dv">-15</span>,</span>
+<span id="cb1-50"><a href="#cb1-50"></a>                        <span class="dt">latitude =</span> <span class="fl">53.56</span>,</span>
+<span id="cb1-51"><a href="#cb1-51"></a>                        <span class="dt">TmaxDay0 =</span> <span class="dv">17</span>))</span>
+<span id="cb1-52"><a href="#cb1-52"></a></span>
+<span id="cb1-53"><a href="#cb1-53"></a>mod.berlin &lt;-<span class="st"> </span>keys.lid<span class="op">::</span><span class="kw">readPredictions</span>(</span>
+<span id="cb1-54"><a href="#cb1-54"></a>  <span class="dt">subfolder =</span> paths<span class="op">$</span>green_roof_model_berlin,</span>
+<span id="cb1-55"><a href="#cb1-55"></a>  <span class="dt">rainFile =</span> <span class="st">'obs_rain_5min_Berlin.txt'</span>,</span>
+<span id="cb1-56"><a href="#cb1-56"></a>  <span class="dt">runoffFile =</span> <span class="st">'bbr18.out'</span>, <span class="co"># SWMM output file</span></span>
+<span id="cb1-57"><a href="#cb1-57"></a>  <span class="dt">temperatureFile =</span> <span class="st">'obs_temp_daily_Berlin.txt'</span>,</span>
+<span id="cb1-58"><a href="#cb1-58"></a>  <span class="dt">dateTimetz =</span> <span class="st">'Etc/GMT-1'</span>,</span>
+<span id="cb1-59"><a href="#cb1-59"></a>  <span class="dt">dateTimeformat =</span> <span class="st">'%Y-%m-%d %H:%M'</span>,</span>
+<span id="cb1-60"><a href="#cb1-60"></a>  <span class="dt">to_mmperhour =</span> <span class="kw">list</span>(<span class="dt">rain =</span> <span class="dv">1</span><span class="op">/</span>(<span class="dv">5</span><span class="op">/</span><span class="dv">60</span>), <span class="dt">runoff =</span> <span class="dv">3600</span><span class="op">/</span><span class="dv">194</span>),</span>
+<span id="cb1-61"><a href="#cb1-61"></a>  <span class="dt">parTcontinuous =</span> <span class="kw">list</span>(<span class="dt">longitude =</span> <span class="fl">-13.41</span>,</span>
+<span id="cb1-62"><a href="#cb1-62"></a>                        <span class="dt">standardMeridian =</span> <span class="dv">-15</span>,</span>
+<span id="cb1-63"><a href="#cb1-63"></a>                        <span class="dt">latitude =</span> <span class="fl">52.50</span>,</span>
+<span id="cb1-64"><a href="#cb1-64"></a>                        <span class="dt">TmaxDay0 =</span> <span class="dv">9</span>))</span>
+<span id="cb1-65"><a href="#cb1-65"></a></span>
+<span id="cb1-66"><a href="#cb1-66"></a><span class="co"># make joint rainfall-runoff events (observed), and remove bad events</span></span>
+<span id="cb1-67"><a href="#cb1-67"></a>obs.neubrandenburg<span class="op">$</span>rain_runoff &lt;-<span class="st"> </span>keys.lid<span class="op">::</span><span class="kw">makeRainfallRunoffEvents</span>(</span>
+<span id="cb1-68"><a href="#cb1-68"></a>  <span class="dt">rainfalldata =</span> obs.neubrandenburg<span class="op">$</span>rain,</span>
+<span id="cb1-69"><a href="#cb1-69"></a>  <span class="dt">runoffdata =</span> obs.neubrandenburg<span class="op">$</span>runoff)</span>
+<span id="cb1-70"><a href="#cb1-70"></a></span>
+<span id="cb1-71"><a href="#cb1-71"></a>obs.berlin<span class="op">$</span>rain_runoff &lt;-<span class="st"> </span>keys.lid<span class="op">::</span><span class="kw">makeRainfallRunoffEvents</span>(</span>
+<span id="cb1-72"><a href="#cb1-72"></a>  <span class="dt">rainfalldata =</span> obs.berlin<span class="op">$</span>rain,</span>
+<span id="cb1-73"><a href="#cb1-73"></a>  <span class="dt">runoffdata =</span> obs.berlin<span class="op">$</span>runoff)</span>
+<span id="cb1-74"><a href="#cb1-74"></a></span>
+<span id="cb1-75"><a href="#cb1-75"></a>obs.neubrandenburg<span class="op">$</span>rain_runoff &lt;-<span class="st"> </span>keys.lid<span class="op">::</span><span class="kw">removeBadEvents</span>(</span>
+<span id="cb1-76"><a href="#cb1-76"></a>  <span class="dt">events =</span> obs.neubrandenburg<span class="op">$</span>rain_runoff,</span>
+<span id="cb1-77"><a href="#cb1-77"></a>  <span class="dt">mindur_sec =</span> <span class="dv">300</span>, </span>
+<span id="cb1-78"><a href="#cb1-78"></a>  <span class="dt">removeruncoeffNA =</span> <span class="ot">TRUE</span>,</span>
+<span id="cb1-79"><a href="#cb1-79"></a>  <span class="dt">removezerorain =</span> <span class="ot">TRUE</span>,</span>
+<span id="cb1-80"><a href="#cb1-80"></a>  <span class="dt">removeruncoeff_gt_1 =</span> <span class="ot">TRUE</span>)</span>
+<span id="cb1-81"><a href="#cb1-81"></a></span>
+<span id="cb1-82"><a href="#cb1-82"></a>obs.berlin<span class="op">$</span>rain_runoff &lt;-<span class="st"> </span>keys.lid<span class="op">::</span><span class="kw">removeBadEvents</span>(</span>
+<span id="cb1-83"><a href="#cb1-83"></a>  <span class="dt">events =</span> obs.berlin<span class="op">$</span>rain_runoff,</span>
+<span id="cb1-84"><a href="#cb1-84"></a>  <span class="dt">mindur_sec =</span> <span class="dv">300</span>, </span>
+<span id="cb1-85"><a href="#cb1-85"></a>  <span class="dt">removeruncoeffNA =</span> <span class="ot">TRUE</span>,</span>
+<span id="cb1-86"><a href="#cb1-86"></a>  <span class="dt">removezerorain =</span> <span class="ot">TRUE</span>,</span>
+<span id="cb1-87"><a href="#cb1-87"></a>  <span class="dt">removeruncoeff_gt_1 =</span> <span class="ot">TRUE</span>)</span>
+<span id="cb1-88"><a href="#cb1-88"></a></span>
+<span id="cb1-89"><a href="#cb1-89"></a><span class="co"># make joint rainfall-runoff events (modeled), and remove bad events</span></span>
+<span id="cb1-90"><a href="#cb1-90"></a>mod.neubrandenburg<span class="op">$</span>rain_runoff &lt;-<span class="st">  </span>keys.lid<span class="op">::</span><span class="kw">makeRainfallRunoffEvents</span>(</span>
+<span id="cb1-91"><a href="#cb1-91"></a>  <span class="dt">rainfalldata =</span> mod.neubrandenburg<span class="op">$</span>rain,</span>
+<span id="cb1-92"><a href="#cb1-92"></a>  <span class="dt">runoffdata =</span> mod.neubrandenburg<span class="op">$</span>runoff)</span>
+<span id="cb1-93"><a href="#cb1-93"></a></span>
+<span id="cb1-94"><a href="#cb1-94"></a>mod.berlin<span class="op">$</span>rain_runoff &lt;-<span class="st"> </span>keys.lid<span class="op">::</span><span class="kw">makeRainfallRunoffEvents</span>(</span>
+<span id="cb1-95"><a href="#cb1-95"></a>  <span class="dt">rainfalldata =</span> mod.berlin<span class="op">$</span>rain,</span>
+<span id="cb1-96"><a href="#cb1-96"></a>  <span class="dt">runoffdata =</span> mod.berlin<span class="op">$</span>runoff)</span>
+<span id="cb1-97"><a href="#cb1-97"></a></span>
+<span id="cb1-98"><a href="#cb1-98"></a>mod.neubrandenburg<span class="op">$</span>rain_runoff &lt;-<span class="st"> </span>keys.lid<span class="op">::</span><span class="kw">removeBadEvents</span>(</span>
+<span id="cb1-99"><a href="#cb1-99"></a>  <span class="dt">events =</span> mod.neubrandenburg<span class="op">$</span>rain_runoff,</span>
+<span id="cb1-100"><a href="#cb1-100"></a>  <span class="dt">mindur_sec =</span> <span class="dv">300</span>, </span>
+<span id="cb1-101"><a href="#cb1-101"></a>  <span class="dt">removeruncoeffNA =</span> <span class="ot">TRUE</span>,</span>
+<span id="cb1-102"><a href="#cb1-102"></a>  <span class="dt">removezerorain =</span> <span class="ot">TRUE</span>,</span>
+<span id="cb1-103"><a href="#cb1-103"></a>  <span class="dt">removeruncoeff_gt_1 =</span> <span class="ot">TRUE</span>)</span>
+<span id="cb1-104"><a href="#cb1-104"></a></span>
+<span id="cb1-105"><a href="#cb1-105"></a>mod.berlin<span class="op">$</span>rain_runoff &lt;-<span class="st"> </span>keys.lid<span class="op">::</span><span class="kw">removeBadEvents</span>(</span>
+<span id="cb1-106"><a href="#cb1-106"></a>  <span class="dt">events =</span> mod.berlin<span class="op">$</span>rain_runoff,</span>
+<span id="cb1-107"><a href="#cb1-107"></a>  <span class="dt">mindur_sec =</span> <span class="dv">300</span>, </span>
+<span id="cb1-108"><a href="#cb1-108"></a>  <span class="dt">removeruncoeffNA =</span> <span class="ot">TRUE</span>,</span>
+<span id="cb1-109"><a href="#cb1-109"></a>  <span class="dt">removezerorain =</span> <span class="ot">TRUE</span>,</span>
+<span id="cb1-110"><a href="#cb1-110"></a>  <span class="dt">removeruncoeff_gt_1 =</span> <span class="ot">TRUE</span>)</span>
+<span id="cb1-111"><a href="#cb1-111"></a></span>
+<span id="cb1-112"><a href="#cb1-112"></a><span class="co"># compute max. temperature in antecedent dry weather period (ADWP),</span></span>
+<span id="cb1-113"><a href="#cb1-113"></a><span class="co"># observed</span></span>
+<span id="cb1-114"><a href="#cb1-114"></a>obs.neubrandenburg<span class="op">$</span>rain_runoff<span class="op">$</span>TmaxADWP &lt;-<span class="st"> </span>keys.lid<span class="op">::</span><span class="kw">TmaxADWP</span>(obs.neubrandenburg)</span>
+<span id="cb1-115"><a href="#cb1-115"></a>obs.berlin<span class="op">$</span>rain_runoff<span class="op">$</span>TmaxADWP &lt;-<span class="st"> </span>keys.lid<span class="op">::</span><span class="kw">TmaxADWP</span>(obs.berlin)</span>
+<span id="cb1-116"><a href="#cb1-116"></a></span>
+<span id="cb1-117"><a href="#cb1-117"></a><span class="co"># compute max. temperature in antecedent dry weather period (ADWP),</span></span>
+<span id="cb1-118"><a href="#cb1-118"></a><span class="co"># modeled</span></span>
+<span id="cb1-119"><a href="#cb1-119"></a>mod.neubrandenburg<span class="op">$</span>rain_runoff<span class="op">$</span>TmaxADWP &lt;-<span class="st"> </span>keys.lid<span class="op">::</span><span class="kw">TmaxADWP</span>(mod.neubrandenburg)</span>
+<span id="cb1-120"><a href="#cb1-120"></a>mod.berlin<span class="op">$</span>rain_runoff<span class="op">$</span>TmaxADWP &lt;-<span class="st"> </span>keys.lid<span class="op">::</span><span class="kw">TmaxADWP</span>(mod.berlin)</span>
+<span id="cb1-121"><a href="#cb1-121"></a></span>
+<span id="cb1-122"><a href="#cb1-122"></a><span class="co"># aggregate to monthly level</span></span>
+<span id="cb1-123"><a href="#cb1-123"></a>obs.neubrandenburg<span class="op">$</span>monthly &lt;-<span class="st"> </span>keys.lid<span class="op">::</span><span class="kw">monthlyPattern</span>(obs.neubrandenburg)</span>
+<span id="cb1-124"><a href="#cb1-124"></a>mod.neubrandenburg<span class="op">$</span>monthly &lt;-<span class="st"> </span>keys.lid<span class="op">::</span><span class="kw">monthlyPattern</span>(mod.neubrandenburg)</span>
+<span id="cb1-125"><a href="#cb1-125"></a>obs.berlin<span class="op">$</span>monthly &lt;-<span class="st"> </span>keys.lid<span class="op">::</span><span class="kw">monthlyPattern</span>(obs.berlin)</span>
+<span id="cb1-126"><a href="#cb1-126"></a>mod.berlin<span class="op">$</span>monthly &lt;-<span class="st"> </span>keys.lid<span class="op">::</span><span class="kw">monthlyPattern</span>(mod.berlin)</span>
+<span id="cb1-127"><a href="#cb1-127"></a></span>
+<span id="cb1-128"><a href="#cb1-128"></a><span class="co"># check temporal autocorrelation at monthly level</span></span>
+<span id="cb1-129"><a href="#cb1-129"></a><span class="kw">acf</span>(obs.neubrandenburg<span class="op">$</span>monthly<span class="op">$</span>runoffcoefficient, <span class="dt">lag.max =</span> <span class="dv">5</span>)</span>
+<span id="cb1-130"><a href="#cb1-130"></a><span class="kw">acf</span>(obs.berlin<span class="op">$</span>monthly<span class="op">$</span>runoffcoefficient, <span class="dt">lag.max =</span> <span class="dv">5</span>)</span>
+<span id="cb1-131"><a href="#cb1-131"></a></span>
+<span id="cb1-132"><a href="#cb1-132"></a><span class="co"># make regressions to explore patterns at monthly level</span></span>
+<span id="cb1-133"><a href="#cb1-133"></a>reg.obs.neubrandenburg &lt;-<span class="st"> </span><span class="kw">lm</span>(</span>
+<span id="cb1-134"><a href="#cb1-134"></a>  <span class="dt">formula =</span> runoffcoefficient <span class="op">~</span><span class="st"> </span>rain <span class="op">+</span><span class="st"> </span>meanTmaxADWP, </span>
+<span id="cb1-135"><a href="#cb1-135"></a>  <span class="dt">data =</span> obs.neubrandenburg<span class="op">$</span>monthly)</span>
+<span id="cb1-136"><a href="#cb1-136"></a>reg.mod.neubrandenburg &lt;-<span class="st"> </span><span class="kw">lm</span>(</span>
+<span id="cb1-137"><a href="#cb1-137"></a>  <span class="dt">formula =</span> runoffcoefficient <span class="op">~</span><span class="st"> </span>rain <span class="op">+</span><span class="st"> </span>meanTmaxADWP, </span>
+<span id="cb1-138"><a href="#cb1-138"></a>  <span class="dt">data =</span> mod.neubrandenburg<span class="op">$</span>monthly)</span>
+<span id="cb1-139"><a href="#cb1-139"></a></span>
+<span id="cb1-140"><a href="#cb1-140"></a>reg.obs.berlin &lt;-<span class="st"> </span><span class="kw">lm</span>(</span>
+<span id="cb1-141"><a href="#cb1-141"></a>  <span class="dt">formula =</span> runoffcoefficient <span class="op">~</span><span class="st"> </span>rain <span class="op">+</span><span class="st"> </span>meanTmaxADWP, </span>
+<span id="cb1-142"><a href="#cb1-142"></a>  <span class="dt">data =</span> obs.berlin<span class="op">$</span>monthly)</span>
+<span id="cb1-143"><a href="#cb1-143"></a>reg.mod.berlin &lt;-<span class="st"> </span><span class="kw">lm</span>(</span>
+<span id="cb1-144"><a href="#cb1-144"></a>  <span class="dt">formula =</span> runoffcoefficient <span class="op">~</span><span class="st"> </span>rain <span class="op">+</span><span class="st"> </span>meanTmaxADWP, </span>
+<span id="cb1-145"><a href="#cb1-145"></a>  <span class="dt">data =</span> mod.berlin<span class="op">$</span>monthly)</span>
+<span id="cb1-146"><a href="#cb1-146"></a></span>
+<span id="cb1-147"><a href="#cb1-147"></a><span class="kw">summary</span>(reg.obs.neubrandenburg)</span>
+<span id="cb1-148"><a href="#cb1-148"></a><span class="kw">summary</span>(reg.mod.neubrandenburg)</span>
+<span id="cb1-149"><a href="#cb1-149"></a><span class="kw">summary</span>(reg.obs.berlin)</span>
+<span id="cb1-150"><a href="#cb1-150"></a><span class="kw">summary</span>(reg.mod.berlin)</span>
+<span id="cb1-151"><a href="#cb1-151"></a></span>
+<span id="cb1-152"><a href="#cb1-152"></a><span class="co"># check collinearity</span></span>
+<span id="cb1-153"><a href="#cb1-153"></a>car<span class="op">::</span><span class="kw">vif</span>(reg.obs.neubrandenburg)</span>
+<span id="cb1-154"><a href="#cb1-154"></a>car<span class="op">::</span><span class="kw">vif</span>(reg.obs.berlin)</span></code></pre></div>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
