@@ -220,6 +220,8 @@ y <- apply(X = sensitivity_results[, (ncol(sensitivity_results) -
 
 X <- sensitivity_results[, 1:length(colnamessens)]
 data_aov <- cbind(y, X)
-summary(aov(y ~ ., data = data))
+
+aov(y ~ ., data = data_aov)
+summary(aov(y ~ ., data = data_aov))
 
 ```
