@@ -196,12 +196,12 @@ for(i in seq_len(l)){
                          length(vrr) + 1):ncol(sensitivity_results)] <- vrr
 
   rm(results_rainfall_rate)
-  fs::file_delete(file.path(paths$lid_models, 'tmp.out'))
+  fs::file_delete(file.path(paths$lid_models_zone1, 'tmp.out'))
   }
 
   rm(results)
-  fs::file_delete(file.path(paths$lid_models, 'tmp.inp'))
-  fs::file_delete(file.path(paths$lid_models, 'tmp.rpt'))
+  fs::file_delete(file.path(paths$lid_models_zone1, 'tmp.inp'))
+  fs::file_delete(file.path(paths$lid_models_zone1, 'tmp.rpt'))
 }
 
 # write out results
