@@ -43,68 +43,68 @@ THREADS              1
 [EVAPORATION]
 ;;Data Source    Parameters
 ;;-------------- ----------------
-TEMPERATURE 
+TEMPERATURE
 DRY_ONLY         NO
 
 [TEMPERATURE]
-;;Data Element     Values     
-FILE               "data_weather_sponge_regions\swmm_climeng_zone1_temp.txt"
-WINDSPEED FILE    
+;;Data Element     Values
+FILE               "climate\swmm_climeng_zone1_temp.txt"
+WINDSPEED FILE
 SNOWMELT           0 0.5 0.6 18 39 0
 ADC IMPERVIOUS     1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
 ADC PERVIOUS       1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
 
 [RAINGAGES]
-;;Name           Format    Interval SCF      Source    
+;;Name           Format    Interval SCF      Source
 ;;-------------- --------- ------ ------ ----------
-RainGage         VOLUME    1:00     1        FILE       "data_weather_sponge_regions\swmm_bwsti_zone1_rain_hourly.txt" BWSTI      MM   
+RainGage         VOLUME    1:00     1        FILE       "climate\swmm_bwsti_zone1_rain_hourly.txt" BWSTI      MM
 
 [SUBCATCHMENTS]
-;;Name           Rain Gage        Outlet           Area     %Imperv  Width    %Slope   CurbLen  SnowPack        
+;;Name           Rain Gage        Outlet           Area     %Imperv  Width    %Slope   CurbLen  SnowPack
 ;;-------------- ---------------- ---------------- -------- -------- -------- -------- -------- ----------------
-S1               RainGage         Out1             0.0065   100      6        0.5      0        snowPack1       
+S1               RainGage         Out1             0.0065   100      6        0.5      0        snowPack1
 
 [SUBAREAS]
-;;Subcatchment   N-Imperv   N-Perv     S-Imperv   S-Perv     PctZero    RouteTo    PctRouted 
+;;Subcatchment   N-Imperv   N-Perv     S-Imperv   S-Perv     PctZero    RouteTo    PctRouted
 ;;-------------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-S1               0.01       0.1        1          25         0          OUTLET    
+S1               0.01       0.1        1          25         0          OUTLET
 
 [INFILTRATION]
-;;Subcatchment   MaxRate    MinRate    Decay      DryTime    MaxInfil  
+;;Subcatchment   MaxRate    MinRate    Decay      DryTime    MaxInfil
 ;;-------------- ---------- ---------- ---------- ---------- ----------
-S1               700        350        80         5          90        
+S1               700        350        80         5          90
 
 [LID_CONTROLS]
 ;;Name           Type/Layer Parameters
 ;;-------------- ---------- ----------
 Gr2              GR
-Gr2              SURFACE    0          0.313411733086687 0.0845782298611011 6.94508363259956 5         
+Gr2              SURFACE    0          0.313411733086687 0.0845782298611011 6.94508363259956 5
 Gr2              SOIL       108.799609355628 0.599323754012585 0.378954279981554 0.211478835605085 170.699292724021 58.6889489809982 78.9419485256076
 Gr2              DRAINMAT   65.0779889663681 0.252694211550988 0.400062839913182
 
 [LID_USAGE]
-;;Subcatchment   LID Process      Number  Area       Width      InitSat    FromImp    ToPerv     RptFile                  DrainTo          FromPerv  
+;;Subcatchment   LID Process      Number  Area       Width      InitSat    FromImp    ToPerv     RptFile                  DrainTo          FromPerv
 ;;-------------- ---------------- ------- ---------- ---------- ---------- ---------- ---------- ------------------------ ---------------- ----------
-S1               Gr2              1       65         6          0          0          0          *                        *                0               
+S1               Gr2              1       65         6          0          0          0          *                        *                0
 
 [SNOWPACKS]
 ;;Name           Surface    Parameters
 ;;-------------- ---------- ----------
-snowPack1        PLOWABLE   0.0001     0.0002     4          0.5        0.00       0.00       0.0       
-snowPack1        IMPERVIOUS 0.0001     0.0002     4          0.5        0.00       0.00       50        
-snowPack1        PERVIOUS   0.0001     0.0002     4          0.5        0.00       0.00       50        
-snowPack1        REMOVAL    1.0        0.0        0.0        0.0        0.0        0.0        
+snowPack1        PLOWABLE   0.0001     0.0002     4          0.5        0.00       0.00       0.0
+snowPack1        IMPERVIOUS 0.0001     0.0002     4          0.5        0.00       0.00       50
+snowPack1        PERVIOUS   0.0001     0.0002     4          0.5        0.00       0.00       50
+snowPack1        REMOVAL    1.0        0.0        0.0        0.0        0.0        0.0
 
 [OUTFALLS]
-;;Name           Elevation  Type       Stage Data       Gated    Route To        
+;;Name           Elevation  Type       Stage Data       Gated    Route To
 ;;-------------- ---------- ---------- ---------------- -------- ----------------
-Out1             0          FREE                        NO                       
+Out1             0          FREE                        NO
 
 [PATTERNS]
 ;;Name           Type       Multipliers
 ;;-------------- ---------- -----------
-Recovery         MONTHLY    1.5   1.5   1.5   1.5   1.5   1.5  
-Recovery                    1.5   1.5   1.5   1.5   1.5   1.5  
+Recovery         MONTHLY    1.5   1.5   1.5   1.5   1.5   1.5
+Recovery                    1.5   1.5   1.5   1.5   1.5   1.5
 
 [REPORT]
 ;;Reporting Options
@@ -119,24 +119,24 @@ DIMENSIONS 0.000 0.000 10000.000 10000.000
 Units      None
 
 [COORDINATES]
-;;Node           X-Coord            Y-Coord           
+;;Node           X-Coord            Y-Coord
 ;;-------------- ------------------ ------------------
-Out1             3384.528           6666.667          
+Out1             3384.528           6666.667
 
 [VERTICES]
-;;Link           X-Coord            Y-Coord           
+;;Link           X-Coord            Y-Coord
 ;;-------------- ------------------ ------------------
 
 [Polygons]
-;;Subcatchment   X-Coord            Y-Coord           
+;;Subcatchment   X-Coord            Y-Coord
 ;;-------------- ------------------ ------------------
-S1               4613.197           6416.382          
-S1               4670.080           4232.082          
-S1               1985.210           4288.965          
-S1               1962.457           6439.135          
+S1               4613.197           6416.382
+S1               4670.080           4232.082
+S1               1985.210           4288.965
+S1               1962.457           6439.135
 
 [SYMBOLS]
-;;Gage           X-Coord            Y-Coord           
+;;Gage           X-Coord            Y-Coord
 ;;-------------- ------------------ ------------------
-RainGage         1598.407           5426.621          
+RainGage         1598.407           5426.621
 

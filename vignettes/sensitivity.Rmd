@@ -14,7 +14,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup, eval = FALSE}
+```{r setup, eval = TRUE}
 library(keys.lid)
 
 ### Download "EPA SWMM 5.1.015.7z" from KWB cloud
@@ -27,9 +27,11 @@ paths_list <- list(
   root_swmm = "C:/_UserProg",
   swmm_version = "5.1.013",
   swmm_exe = "<root_swmm>/EPA SWMM <swmm_version>/swmm5.exe",
-  lid_models = "<root_data>/sensitivity_analysis_models",
+  lid_models = "<root_data>/sensitivity/models",
+  lid_models_zone1 = "<lid_models>/zone1",
+  params = "<root_data>/sensitivity/params",
   weather_data = "<root_data>/data_weather_sponge_regions",
-  sensitivity_results = "<root_data>/sensitivity_analysis_results"
+  sensitivity_results = "<root_data>/sensitivity/results"
 )
 
 paths <- kwb.utils::resolve(paths_list)
@@ -40,14 +42,14 @@ paths <- kwb.utils::resolve(paths_list)
 # are selected there. these files are in paths$weather_data
 
 # read swmm model
-swmm_file <- swmmr::read_inp(x = file.path(paths$lid_models,
+swmm_file <- swmmr::read_inp(x = file.path(paths$lid_models_zone1,
                                            'model_greenroof_zone1.inp'))
 
 # read user-defined tables for parameter min and max values
-params_min <- read.table(file.path(paths$lid_models, 'params_greenroof_min.csv'),
+params_min <- read.table(file.path(paths$params, 'params_greenroof_min.csv'),
                          sep = ';',
                          header = TRUE)
-params_max <- read.table(file.path(paths$lid_models, 'params_greenroof_max.csv'),
+params_max <- read.table(file.path(paths$params, 'params_greenroof_max.csv'),
                          sep = ';',
                          header = TRUE)
 
@@ -131,12 +133,12 @@ for(i in seq_len(l)){
 
   # save the changed input file, overwriting the original file to avoid writing
   # thousands of copies (one per run)
-  swmmr::write_inp(swmm_file, file.path(paths$lid_models, 'tmp.inp'))
+  swmmr::write_inp(swmm_file, file.path(paths$lid_models_zone1, 'tmp.inp'))
 
   # run swimm with changed input file
-  results <- swmmr::run_swmm(inp = file.path(paths$lid_models, 'tmp.inp'),
+  results <- swmmr::run_swmm(inp = file.path(paths$lid_models_zone1, 'tmp.inp'),
                              exec = paths$swmm_exe)
-  swmm_run_has_errors <- !file.exists(file.path(paths$lid_models, 'tmp.out'))
+  swmm_run_has_errors <- !file.exists(file.path(paths$lid_models_zone1, 'tmp.out'))
 
   if(swmm_run_has_errors) {
       warning(sprintf("SWMM run %d did not complete successfully without errors.",
@@ -181,7 +183,7 @@ for(i in seq_len(l)){
   names(vrr) <- years
   for(j in seq_along(years)){
     yearj <- results[results$years == years[j], ]
-    runoff_volume <- computeVol(data = yearj,
+    runoff_volume <- keys.lid::computeVol(data = yearj,
                                 timeColumn = 'dateTime',
                                 Qcolumn = 'runoff')
     rainfall_volume <- sum(yearj$rainfall_depth, na.rm = TRUE)
