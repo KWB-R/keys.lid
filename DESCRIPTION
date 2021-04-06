@@ -28,6 +28,8 @@ Imports:
     dplyr,
     kwb.event,
     swmmr,
+    readxl,
+    tidyr,
     xts,
     zoo
 Suggests: 
