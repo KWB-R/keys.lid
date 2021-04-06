@@ -19,9 +19,9 @@ scenarios <- dplyr::bind_rows(stats::setNames(
   lapply(sheets, function(sheet) {
   readxl::read_xlsx(scenarios_xlsx, sheet = sheet)
 }), nm = sheets),
-.id = "lid")
+.id = "lid_name_tidy")
 
-cols <- names(scenarios)[!names(scenarios) %in% c("lid",
+cols <- names(scenarios)[!names(scenarios) %in% c("lid_name_tidy",
                                                   "type",
                                                   "parameter_unit",
                                                   "comment",
