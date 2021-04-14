@@ -2,7 +2,8 @@ pandoc: 2.7.3
 pkgdown: 1.6.1
 pkgdown_sha: ~
 articles:
+  scenarios: scenarios.html
   sensitivity: sensitivity.html
   validation: validation.html
-last_built: 2021-04-14T07:41Z
+last_built: 2021-04-14T07:51Z
 
