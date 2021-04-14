@@ -30,7 +30,7 @@ paths_list <- list(
   lid_models = "<root_data>/sensitivity/models",
   lid_models_zone1 = "<lid_models>/zone1",
   params = "<root_data>/sensitivity/params",
-  weather_data = "<root_data>/data_weather_sponge_regions",
+  weather_data = "<root_data>/rawdata/data_weather_sponge_regions",
   sensitivity_results = "<root_data>/sensitivity/results"
 )
 

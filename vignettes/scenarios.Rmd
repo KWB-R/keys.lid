@@ -1,0 +1,23 @@
+---
+title: "Scenarios"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Scenarios}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(keys.lid)
+lid_scenarios <- keys.lid::read_scenarios()
+
+DT::datatable(lid_scenarios)
+
+```
