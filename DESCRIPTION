@@ -27,6 +27,7 @@ BugReports: https://github.com/KWB-R/keys.lid/issues
 Imports: 
     dplyr,
     kwb.event,
+    kwb.swmm,
     swmmr,
     readxl,
     tidyr,
@@ -41,7 +42,8 @@ Suggests:
 VignetteBuilder: 
     knitr
 Remotes:
-    github::kwb-r/kwb.event
+    github::kwb-r/kwb.event,
+    github::kwb-r/kwb.swmm
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)

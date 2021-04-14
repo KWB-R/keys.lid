@@ -1,0 +1,168 @@
+[TITLE]
+;;Project Title/Notes
+
+[OPTIONS]
+;;Option             Value
+FLOW_UNITS           LPS
+INFILTRATION         HORTON
+FLOW_ROUTING         KINWAVE
+LINK_OFFSETS         DEPTH
+MIN_SLOPE            0
+ALLOW_PONDING        NO
+SKIP_STEADY_STATE    NO
+
+IGNORE_SNOWMELT      YES
+START_DATE           04/30/2008
+START_TIME           00:00:00
+REPORT_START_DATE    04/30/2008
+REPORT_START_TIME    00:00:00
+END_DATE             10/15/2019
+END_TIME             23:00:00
+SWEEP_START          01/01
+SWEEP_END            12/31
+DRY_DAYS             0
+REPORT_STEP          01:00:00
+WET_STEP             01:00:00
+DRY_STEP             01:00:00
+ROUTING_STEP         1:00:00 
+RULE_STEP            00:00:00
+
+INERTIAL_DAMPING     PARTIAL
+NORMAL_FLOW_LIMITED  BOTH
+FORCE_MAIN_EQUATION  H-W
+VARIABLE_STEP        0.75
+LENGTHENING_STEP     0
+MIN_SURFAREA         1.14
+MAX_TRIALS           8
+HEAD_TOLERANCE       0.0015
+SYS_FLOW_TOL         5
+LAT_FLOW_TOL         5
+MINIMUM_STEP         0.5
+THREADS              1
+
+[EVAPORATION]
+;;Data Source    Parameters
+;;-------------- ----------------
+TEMPERATURE 
+DRY_ONLY         NO
+
+[TEMPERATURE]
+;;Data Element     Values     
+FILE               "swmm_climeng_zone1_temp.txt"
+WINDSPEED FILE    
+SNOWMELT           0 0.5 0.6 18 39 0
+ADC IMPERVIOUS     1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
+ADC PERVIOUS       1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
+
+[RAINGAGES]
+;;Name           Format    Interval SCF      Source    
+;;-------------- --------- ------ ------ ----------
+RainGage         VOLUME    1:00     1        FILE       "swmm_bwsti_zone1_rain_hourly.txt" BWSTI      MM   
+
+[SUBCATCHMENTS]
+;;Name           Rain Gage        Outlet           Area     %Imperv  Width    %Slope   CurbLen  SnowPack        
+;;-------------- ---------------- ---------------- -------- -------- -------- -------- -------- ----------------
+S1               RainGage         Out1             0.0065   100      6        0.5      0        snowPack1       
+
+[SUBAREAS]
+;;Subcatchment   N-Imperv   N-Perv     S-Imperv   S-Perv     PctZero    RouteTo    PctRouted 
+;;-------------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+S1               0.01       0.1        1          25         0          OUTLET    
+
+[INFILTRATION]
+;;Subcatchment   Param1     Param2     Param3     Param4     Param5    
+;;-------------- ---------- ---------- ---------- ---------- ----------
+S1               700        350        80         5          90        
+
+[LID_CONTROLS]
+;;Name           Type/Layer Parameters
+;;-------------- ---------- ----------
+Gr2              GR
+Gr2              SURFACE    1          0.313411733086687 0.0845782298611011 6.94508363259956 5         
+Gr2              SOIL       108.799609355628 0.599323754012585 0.378954279981554 0.211478835605085 170.699292724021 58.6889489809982 78.9419485256076
+
+Brc              BC
+Brc              SURFACE    1          0.0        0.1        1.0        5         
+Brc              SOIL       1          0.5        0.2        0.1        0.5        10.0       3.5       
+Brc              STORAGE    1          0.75       0.5        0         
+Brc              DRAIN      0          0.5        6          6          0          0                    
+
+Rg               RG
+Rg               SURFACE    1          0.0        0.1        1.0        5         
+Rg               SOIL       1          0.5        0.2        0.1        0.5        10.0       3.5       
+Rg               STORAGE    0          0.75       0.5        0         
+
+It               IT
+It               SURFACE    1          0.0        0.1        1.0        5         
+It               STORAGE    1          0.75       0.5        0         
+It               DRAIN      0          0.5        6          6          0          0                    
+
+Rb               RB
+Rb               STORAGE    1          0.75       0.5        0         
+Rb               DRAIN      1          0.5        6          6          0          0                    
+
+Rd               RD
+Rd               SURFACE    1          0.0        0.1        1.0        5         
+Rd               DRAIN      1          0.5        6          6          0          0                    
+
+Vs               VS
+Vs               SURFACE    1          0.0        0.1        1.0        5         
+
+[LID_USAGE]
+;;Subcatchment   LID Process      Number  Area       Width      InitSat    FromImp    ToPerv     RptFile                  DrainTo          FromPerv  
+;;-------------- ---------------- ------- ---------- ---------- ---------- ---------- ---------- ------------------------ ---------------- ----------
+S1               Gr2              1       65         6          0          0          0          *                        *                0               
+
+[SNOWPACKS]
+;;Name           Surface    Parameters
+;;-------------- ---------- ----------
+snowPack1        PLOWABLE   0.0001     0.0002     4          0.5        0.00       0.00       0.0       
+snowPack1        IMPERVIOUS 0.0001     0.0002     4          0.5        0.00       0.00       50        
+snowPack1        PERVIOUS   0.0001     0.0002     4          0.5        0.00       0.00       50        
+snowPack1        REMOVAL    1.0        0.0        0.0        0.0        0.0        0.0        
+
+[OUTFALLS]
+;;Name           Elevation  Type       Stage Data       Gated    Route To        
+;;-------------- ---------- ---------- ---------------- -------- ----------------
+Out1             0          FREE                        NO                       
+
+[PATTERNS]
+;;Name           Type       Multipliers
+;;-------------- ---------- -----------
+Recovery         MONTHLY    1.5   1.5   1.5   1.5   1.5   1.5  
+Recovery                    1.5   1.5   1.5   1.5   1.5   1.5  
+
+[REPORT]
+;;Reporting Options
+SUBCATCHMENTS ALL
+NODES ALL
+LINKS ALL
+
+[TAGS]
+
+[MAP]
+DIMENSIONS 0.000 0.000 10000.000 10000.000
+Units      None
+
+[COORDINATES]
+;;Node           X-Coord            Y-Coord           
+;;-------------- ------------------ ------------------
+Out1             3384.528           6666.667          
+
+[VERTICES]
+;;Link           X-Coord            Y-Coord           
+;;-------------- ------------------ ------------------
+
+[Polygons]
+;;Subcatchment   X-Coord            Y-Coord           
+;;-------------- ------------------ ------------------
+S1               4613.197           6416.382          
+S1               4670.080           4232.082          
+S1               1985.210           4288.965          
+S1               1962.457           6439.135          
+
+[SYMBOLS]
+;;Gage           X-Coord            Y-Coord           
+;;-------------- ------------------ ------------------
+RainGage         1598.407           5426.621          
+
