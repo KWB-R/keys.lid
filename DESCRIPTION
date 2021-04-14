@@ -36,6 +36,7 @@ Imports:
 Suggests: 
     car,
     covr,
+    DT,
     fs,
     knitr,
     rmarkdown
