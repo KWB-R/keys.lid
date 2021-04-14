@@ -1,0 +1,172 @@
+---
+title: "Validation"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Validation}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, eval = FALSE}
+library(keys.lid)
+### define paths
+paths_list <- list(
+root_dir = keys.lid::extdata_file(),
+green_roof_model = "<root_dir>/validation/green_roof",
+green_roof_model_berlin = "<green_roof_model>/berlin",
+green_roof_model_neubrandenburg = "<green_roof_model>/neubrandenburg"
+)
+
+paths <- kwb.utils::resolve(paths_list)
+
+# kuras (Neubrandenburg): rain mm/5min, runoff mm/5min, dt =5min, green roof area = 101 m2
+# basar (Berlin): rain mm/5min, runoff mm/5min, dt = 5min, green roof area = 194 m2
+
+# load observed rainfall, runoff and temperature, transforming to mm/hour
+obs.neubrandenburg <- keys.lid::readObservations(
+  subfolder = paths$green_roof_model_neubrandenburg,
+  rainFile = 'obs_rain_5min_Neubrandenburg.txt',
+  runoffFile = 'obs_runoff_5min_Neubrandenburg.txt',
+  temperatureFile = 'obs_temperature_10min_Neubrandenburg.txt',
+  dateTimetz = 'Etc/GMT-1', 
+  dateTimeformat = '%Y-%m-%d %H:%M:%S',
+  to_mmperhour = list(rain=1/(5/60), runoff=1/(5/60)), 
+  NAval = list(rain = -999, runoff = -999, temperature = -999))
+
+obs.berlin <- keys.lid::readObservations(
+  subfolder = paths$green_roof_model_berlin
+  rainFile = 'obs_rain_5min_Berlin.txt',
+  runoffFile = 'obs_runoff_5min_Berlin.txt',
+  temperatureFile = 'obs_temperature_10min_Berlin.txt',
+  dateTimetz = 'Etc/GMT-1', 
+  dateTimeformat = '%Y-%m-%d %H:%M:%S',
+  to_mmperhour = list(rain=1/(5/60), runoff=1/(5/60)),
+  NAval = list(rain = -999, runoff = -999, temperature = -999))
+
+# load modeled runoff, together with rainfall and temperature used as model inputs,
+# transforming to mm/hour. since SWMM uses daily Tmax, Tmin and a sinusoidal
+# function to produce continuous T data, readPredictions does the same using the 
+# same formulas given in SWMM's reference manual
+mod.neubrandenburg <- keys.lid::readPredictions(
+  subfolder = paths$green_roof_model_neubrandenburg,
+  rainFile = 'obs_rain_5min_Neubrandenburg.txt',
+  runoffFile = 'neubrand.out', # SWMM output file
+  temperatureFile = 'obs_temp_daily_Neubrandenburg.txt',
+  dateTimetz = 'Etc/GMT-1',
+  dateTimeformat = '%Y-%m-%d %H:%M',
+  to_mmperhour = list(rain = 1/(5/60), runoff = 3600/101),
+  parTcontinuous = list(longitude = -13.26,
+                        standardMeridian = -15,
+                        latitude = 53.56,
+                        TmaxDay0 = 17))
+
+mod.berlin <- keys.lid::readPredictions(
+  subfolder = paths$green_roof_model_berlin,
+  rainFile = 'obs_rain_5min_Berlin.txt',
+  runoffFile = 'bbr18.out', # SWMM output file
+  temperatureFile = 'obs_temp_daily_Berlin.txt',
+  dateTimetz = 'Etc/GMT-1',
+  dateTimeformat = '%Y-%m-%d %H:%M',
+  to_mmperhour = list(rain = 1/(5/60), runoff = 3600/194),
+  parTcontinuous = list(longitude = -13.41,
+                        standardMeridian = -15,
+                        latitude = 52.50,
+                        TmaxDay0 = 9))
+
+# make joint rainfall-runoff events (observed), and remove bad events
+obs.neubrandenburg$rain_runoff <- keys.lid::makeRainfallRunoffEvents(
+  rainfalldata = obs.neubrandenburg$rain,
+  runoffdata = obs.neubrandenburg$runoff)
+
+obs.berlin$rain_runoff <- keys.lid::makeRainfallRunoffEvents(
+  rainfalldata = obs.berlin$rain,
+  runoffdata = obs.berlin$runoff)
+
+obs.neubrandenburg$rain_runoff <- keys.lid::removeBadEvents(
+  events = obs.neubrandenburg$rain_runoff,
+  mindur_sec = 300, 
+  removeruncoeffNA = TRUE,
+  removezerorain = TRUE,
+  removeruncoeff_gt_1 = TRUE)
+
+obs.berlin$rain_runoff <- keys.lid::removeBadEvents(
+  events = obs.berlin$rain_runoff,
+  mindur_sec = 300, 
+  removeruncoeffNA = TRUE,
+  removezerorain = TRUE,
+  removeruncoeff_gt_1 = TRUE)
+
+# make joint rainfall-runoff events (modeled), and remove bad events
+mod.neubrandenburg$rain_runoff <-  keys.lid::makeRainfallRunoffEvents(
+  rainfalldata = mod.neubrandenburg$rain,
+  runoffdata = mod.neubrandenburg$runoff)
+
+mod.berlin$rain_runoff <- keys.lid::makeRainfallRunoffEvents(
+  rainfalldata = mod.berlin$rain,
+  runoffdata = mod.berlin$runoff)
+
+mod.neubrandenburg$rain_runoff <- keys.lid::removeBadEvents(
+  events = mod.neubrandenburg$rain_runoff,
+  mindur_sec = 300, 
+  removeruncoeffNA = TRUE,
+  removezerorain = TRUE,
+  removeruncoeff_gt_1 = TRUE)
+
+mod.berlin$rain_runoff <- keys.lid::removeBadEvents(
+  events = mod.berlin$rain_runoff,
+  mindur_sec = 300, 
+  removeruncoeffNA = TRUE,
+  removezerorain = TRUE,
+  removeruncoeff_gt_1 = TRUE)
+
+# compute max. temperature in antecedent dry weather period (ADWP),
+# observed
+obs.neubrandenburg$rain_runoff$TmaxADWP <- keys.lid::TmaxADWP(obs.neubrandenburg)
+obs.berlin$rain_runoff$TmaxADWP <- keys.lid::TmaxADWP(obs.berlin)
+
+# compute max. temperature in antecedent dry weather period (ADWP),
+# modeled
+mod.neubrandenburg$rain_runoff$TmaxADWP <- keys.lid::TmaxADWP(mod.neubrandenburg)
+mod.berlin$rain_runoff$TmaxADWP <- keys.lid::TmaxADWP(mod.berlin)
+
+# aggregate to monthly level
+obs.neubrandenburg$monthly <- keys.lid::monthlyPattern(obs.neubrandenburg)
+mod.neubrandenburg$monthly <- keys.lid::monthlyPattern(mod.neubrandenburg)
+obs.berlin$monthly <- keys.lid::monthlyPattern(obs.berlin)
+mod.berlin$monthly <- keys.lid::monthlyPattern(mod.berlin)
+
+# check temporal autocorrelation at monthly level
+acf(obs.neubrandenburg$monthly$runoffcoefficient, lag.max = 5)
+acf(obs.berlin$monthly$runoffcoefficient, lag.max = 5)
+
+# make regressions to explore patterns at monthly level
+reg.obs.neubrandenburg <- lm(
+  formula = runoffcoefficient ~ rain + meanTmaxADWP, 
+  data = obs.neubrandenburg$monthly)
+reg.mod.neubrandenburg <- lm(
+  formula = runoffcoefficient ~ rain + meanTmaxADWP, 
+  data = mod.neubrandenburg$monthly)
+
+reg.obs.berlin <- lm(
+  formula = runoffcoefficient ~ rain + meanTmaxADWP, 
+  data = obs.berlin$monthly)
+reg.mod.berlin <- lm(
+  formula = runoffcoefficient ~ rain + meanTmaxADWP, 
+  data = mod.berlin$monthly)
+
+summary(reg.obs.neubrandenburg)
+summary(reg.mod.neubrandenburg)
+summary(reg.obs.berlin)
+summary(reg.mod.berlin)
+
+# check collinearity
+car::vif(reg.obs.neubrandenburg)
+car::vif(reg.obs.berlin)
+```
