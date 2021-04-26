@@ -33,7 +33,8 @@ Imports:
     tidyr,
     tidyselect,
     xts,
-    zoo
+    zoo,
+    magrittr
 Suggests: 
     car,
     covr,
