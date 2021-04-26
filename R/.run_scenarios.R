@@ -6,8 +6,9 @@ model_dir <- keys.lid::extdata_file("scenarios/models/zone1")
 
 base_model <- list.files(path = model_dir, pattern = "\\.inp$", full.names = TRUE)
 
-swmm_inp <- swmmr::read_inp(base_model)
+swmm_inp <- swmmr::read_inp(base_model[1])
 swmm_inp$lid_controls
+swmm_inp$lid_usage
 
 cols <- c("Name", "Type/Layer")
 
@@ -28,12 +29,14 @@ lid_selected_scenario <- lid_selected %>%  dplyr::filter(.data$scenario_name == 
 
 lid_controls <- lidconfig_to_swmm(lid_selected_scenario)
 
-
+lid_area_fraction <- 0.1
+catchment_area_m2 <- 1000
+lid_area_m2 <- lid_area_fraction * catchment_area_m2
 
 subcatchment <- tibble::tibble(Name = "S1",
                                `Rain Gage` = "RainGage",
                                Outlet = "Out1",
-                               Area = keys.lid::squaremeter_to_hectar(1000),
+                               Area = keys.lid::squaremeter_to_hectar(catchment_area_m2),
                                Perc_Imperv = 100,
                                Width = 6,
                                Perc_Slope = 0.5,
@@ -47,22 +50,23 @@ swmm_inp$subcatchments <- subcatchment
 lid_usage <- tibble::tibble("Subcatchment" = "S1",
                     "LID Process" = lid_controls$Name[1],
                     "Number" = 1,
-                    "Area" = 65,
+                    "Area" = lid_area_m2,
                     "Width" = 6,
                     "InitSat" = 0,
                     "FromImp" = 0,
-                    "ToPerv" = "*",
-                    "DrainTo" = "*"
+                    "ToPerv" = 0,
+                    "RptFile" = "*",
+                    "DrainTo" = "*                0"
                     )
 
 path_inp_file <- paste0(sprintf("%s/%s",
-                                model_dir,
-                                stringr::str_replace_all(lid_controls$Name[1],
-                                                     pattern = "\\.",
-                                                     replacement = "__")),
+                                model_dir, lid_controls$Name[1]),
+                                # stringr::str_replace_all(lid_controls$Name[1],
+                                #                      pattern = "\\.",
+                                #                      replacement = "__")),
                         ".inp")
 swmm_inp$lid_controls <- lid_controls
-swmm_inp$lid_usage  <- lid_controls$Name[1] #lid_usage
+swmm_inp$lid_usage  <- lid_usage # lid_controls$Name[1]
 
 #Temperature file
 swmm_inp$temperature$Values[swmm_inp$temperature$`Data Element` == "FILE"]
@@ -90,9 +94,11 @@ lidconfig_to_swmm <- function(df) {
     dplyr::select(tidyselect::all_of(c("Name", "Type/Layer", "id_type_parameter", "value"))) %>%
     tidyr::pivot_wider(names_from = "id_type_parameter",
                        names_prefix = "Par",
-                       values_from = "value")
+                       values_from = "value") %>%
+    dplyr::filter_at(dplyr::vars(tidyselect::starts_with("Par")), dplyr::any_vars(!is.na(.)))
 
-  lid_parametersation
+  ## dont know why 5 is needed by SWMM (but generated in SWMM GUI)
+  lid_parametersation[lid_parametersation$`Type/Layer` == "SURFACE", "Par5"] <- 5
 
   lid_id <- lid_para$lid_id[lid_para$lid_name_tidy == unique(df$lid_name_tidy)]
 
