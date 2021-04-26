@@ -85,6 +85,8 @@ swmmr::run_swmm(inp = path_inp_file,
 
 })
 
+}
+
 lidconfig_to_swmm <- function(df) {
 
   lid_para <- readr::read_csv(kwb.swmm::extdata_file("lid/required_parameteristion.csv"))
