@@ -122,7 +122,8 @@ results$rainfall_depth <- results$rainfall_rate*dt
 # and add it to output data.frame
 res_vrr <- tibble::tibble(name = lid_controls$Name[1],
                           years = unique(results$years),
-                          vrr = NA_real_)
+                          vrr = NA_real_,
+                          lid_area_fraction = lid_area_fraction)
 
 
 for(j in seq_len(nrow(res_vrr))) {
