@@ -25,7 +25,10 @@ scenario_names <- unique(lid_selected$scenario_name)
 
 selected_scenario <- scenario_names[1]
 
-lid_selected_scenario <- lid_selected %>%  dplyr::filter(.data$scenario_name == selected_scenario)
+
+lapply(scenario_names, function(selected_scenario) {
+lid_selected_scenario <- lid_selected %>%
+  dplyr::filter(.data$scenario_name == selected_scenario)
 
 lid_controls <- lidconfig_to_swmm(lid_selected_scenario)
 
@@ -76,9 +79,11 @@ swmm_inp$raingages$Source
 
 
 swmmr::write_inp(swmm_inp, file = path_inp_file)
-swmmr::run_swmm(path_inp_file)
+swmmr::run_swmm(inp = path_inp_file,
+                rpt = stringr::str_replace(path_inp_file, "\\.inp", "\\.rpt"),
+                out = stringr::str_replace(path_inp_file, "\\.inp", "\\.out"))
 
-}
+})
 
 lidconfig_to_swmm <- function(df) {
 
