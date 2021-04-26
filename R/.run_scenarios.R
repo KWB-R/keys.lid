@@ -26,7 +26,7 @@ scenario_names <- unique(lid_selected$scenario_name)
 selected_scenario <- scenario_names[1]
 
 
-lapply(scenario_names, function(selected_scenario) {
+vrr_list <- lapply(scenario_names, function(selected_scenario) {
 lid_selected_scenario <- lid_selected %>%
   dplyr::filter(.data$scenario_name == selected_scenario)
 
@@ -68,22 +68,78 @@ path_inp_file <- paste0(sprintf("%s/%s",
                                 #                      pattern = "\\.",
                                 #                      replacement = "__")),
                         ".inp")
+path_rpt_file <- stringr::str_replace(path_inp_file, "\\.inp", "\\.rpt")
+path_out_file <- stringr::str_replace(path_inp_file, "\\.inp", "\\.out")
+
 swmm_inp$lid_controls <- lid_controls
 swmm_inp$lid_usage  <- lid_usage # lid_controls$Name[1]
 
 #Temperature file
-swmm_inp$temperature$Values[swmm_inp$temperature$`Data Element` == "FILE"]
+#swmm_inp$temperature$Values[swmm_inp$temperature$`Data Element` == "FILE"]
 
 #Rain file
-swmm_inp$raingages$Source
+#swmm_inp$raingages$Source
 
 
 swmmr::write_inp(swmm_inp, file = path_inp_file)
 swmmr::run_swmm(inp = path_inp_file,
-                rpt = stringr::str_replace(path_inp_file, "\\.inp", "\\.rpt"),
-                out = stringr::str_replace(path_inp_file, "\\.inp", "\\.out"))
+                rpt = path_rpt_file,
+                out = path_out_file)
+
+# read out results for itype 3 (= system) and vIndex 4 (= runoff) and 1(= rainfall)
+results_runoff <- swmmr::read_out(path_out_file, iType = 3, vIndex = 4)
+results_rainfall_rate <- swmmr::read_out(path_out_file, iType = 3, vIndex = 1)
+
+# store results in data frame
+results <- data.frame(
+  dateTime = zoo::index(results_runoff$system_variable$total_runoff),
+  rainfall_rate = zoo::coredata(results_rainfall_rate$system_variable$total_rainfall),
+  runoff = zoo::coredata(results_runoff$system_variable$total_runoff),
+  years = format(zoo::index(results_runoff$system_variable$total_runoff),
+                 format = '%Y'))
+
+
+# convert runoff from l/s to mm/s
+flow_units <- swmm_inp$options[
+  swmm_inp$options$Option == 'FLOW_UNITS', 'Value'][[1]]
+if(flow_units == 'LPS'){
+  lidarea <- swmm_inp$subcatchments$Area
+  results$runoff <- results$runoff/(1e4*lidarea)
+}
+
+# compute rainfall depth [mm] based on rainfall rate [mm/hour] and time
+# step of data [hours]
+
+# get time interval in hours
+dt <- as.numeric(strsplit(x = swmm_inp$raingages$Interval,
+                          split = ':')[[1]])
+dt <- dt[1] + dt[2]/60
+
+# rainfall depth = rainfall rate * time
+results$rainfall_depth <- results$rainfall_rate*dt
+
+# compute annual VRR (volume rainfall retention) for all analysis years
+# and add it to output data.frame
+res_vrr <- tibble::tibble(name = lid_controls$Name[1],
+                          years = unique(results$years),
+                          vrr = NA_real_)
+
+
+for(j in seq_len(nrow(res_vrr))) {
+  yearj <- results[results$years == res_vrr$years[j], ]
+  runoff_volume <- keys.lid::computeVol(data = yearj,
+                                        timeColumn = 'dateTime',
+                                        Qcolumn = 'runoff')
+  rainfall_volume <- sum(yearj$rainfall_depth, na.rm = TRUE)
+
+  res_vrr$vrr[j] <- runoff_volume/rainfall_volume
+}
+
+res_vrr
 
 })
+
+vrr <- data.table::rbindlist(vrr_list)
 
 }
 
@@ -117,4 +173,57 @@ lidconfig_to_swmm <- function(df) {
 
 }
 
-
+# # read out results for itype 3 (= system) and vIndex 4 (= runoff) and 1(= rainfall)
+# results_runoff <- swmmr::read_out(out, iType = 3, vIndex = 4)
+# results_rainfall_rate <- swmmr::read_out(out, iType = 3, vIndex = 1)
+#
+# # store results in data frame
+# results <- data.frame(
+#   dateTime = zoo::index(results_runoff$system_variable$total_runoff),
+#   rainfall_rate = zoo::coredata(results_rainfall_rate$system_variable$total_rainfall),
+#   runoff = zoo::coredata(results_runoff$system_variable$total_runoff),
+#   years = format(zoo::index(results_runoff$system_variable$total_runoff),
+#                  format = '%Y'))
+#
+# inp <- stringr::str_replace(out, "\\.out", "\\.inp")
+#
+# swmm_file <- swmmr::read_inp(inp)
+#
+# # convert runoff from l/s to mm/s
+# flow_units <- swmm_file$options[
+#   swmm_file$options$Option == 'FLOW_UNITS', 'Value'][[1]]
+# if(flow_units == 'LPS'){
+#   lidarea <- swmm_file$subcatchments$Area
+#   results$runoff <- results$runoff/(1e4*lidarea)
+# }
+#
+# # compute rainfall depth [mm] based on rainfall rate [mm/hour] and time
+# # step of data [hours]
+#
+# # get time interval in hours
+# dt <- as.numeric(strsplit(x = swmm_file$raingages$Interval,
+#                           split = ':')[[1]])
+# dt <- dt[1] + dt[2]/60
+#
+# # rainfall depth = rainfall rate * time
+# results$rainfall_depth <- results$rainfall_rate*dt
+#
+# # compute annual VRR (volume rainfall retention) for all analysis years
+# # and add it to output data.frame
+# years <- unique(results$years)
+# vrr <- vector(mode = 'numeric', length = length(years))
+# names(vrr) <- years
+# for(j in seq_along(years)){
+#   yearj <- results[results$years == years[j], ]
+#   runoff_volume <- keys.lid::computeVol(data = yearj,
+#                                         timeColumn = 'dateTime',
+#                                         Qcolumn = 'runoff')
+#   rainfall_volume <- sum(yearj$rainfall_depth, na.rm = TRUE)
+#
+#   vrr[j] <- runoff_volume/rainfall_volume
+# }
+#
+# results %>%
+#   dplyr::group_by(.data$years) %>%
+#   dplyr::summarise(rainfall.depth_mm.sum = sum(rainfall_depth),
+#                    runoff_mm.sum = sum(runoff))
