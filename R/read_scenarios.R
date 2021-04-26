@@ -9,6 +9,7 @@
 #' @importFrom readxl excel_sheets read_xlsx
 #' @importFrom stats setNames
 #' @importFrom tidyr pivot_longer
+#' @importFrom tidyselect all_of
 #'
 read_scenarios <- function(
   scenarios_xlsx = extdata_file("scenarios/swmm_lid-parameterisation.xlsx")
@@ -20,14 +21,15 @@ scenarios <- dplyr::bind_rows(stats::setNames(
   lid <- readxl::read_xlsx(scenarios_xlsx, sheet = lid)
   cols <- names(lid)[!names(lid) %in% c("lid_name_tidy",
                                                     "type",
+                                                    "id_type_parameter",
                                                     "parameter_unit",
                                                     "comment",
                                                     "reference")]
   tidyr::pivot_longer(lid,
-                      cols = cols,
+                      cols = tidyselect::all_of(cols),
                       names_to = "scenario_name",
                       values_to = "value")
-}), nm = sheets),
+}), nm = lids),
 .id = "lid_name_tidy")
 
 
