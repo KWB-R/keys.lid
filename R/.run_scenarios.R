@@ -21,20 +21,35 @@ lid <- "permeable_pavement"
 
 lid_selected <- scenarios %>%  dplyr::filter(.data$lid_name_tidy == lid)
 
+pp_0.01 <- get_vrr(lid_selected,
+                   lid_area_fraction = 0.01)
+
+pp_0.05 <- get_vrr(lid_selected,
+                   lid_area_fraction = 0.05)
+
+pp_0.1 <- get_vrr(lid_selected,
+                   lid_area_fraction = 0.1)
+
+
+pp <- dplyr::bind_rows(pp_0.01, pp_0.05) %>%
+dplyr::bind_rows(pp_0.1) %>%
+tidyr::pivot_wider(names_from = "lid_area_fraction",
+                   names_prefix = "lidarea.fraction_",
+                   values_from = "vrr")
+
+get_vrr <- function(
+        lid_selected,
+        lid_area_fraction = 0.1,
+        catchment_area_m2 = 1000,
+        lid_area_m2 = lid_area_fraction * catchment_area_m2)
+{
 scenario_names <- unique(lid_selected$scenario_name)
-
-selected_scenario <- scenario_names[1]
-
-
 vrr_list <- lapply(scenario_names, function(selected_scenario) {
 lid_selected_scenario <- lid_selected %>%
   dplyr::filter(.data$scenario_name == selected_scenario)
 
 lid_controls <- lidconfig_to_swmm(lid_selected_scenario)
 
-lid_area_fraction <- 0.1
-catchment_area_m2 <- 1000
-lid_area_m2 <- lid_area_fraction * catchment_area_m2
 
 subcatchment <- tibble::tibble(Name = "S1",
                                `Rain Gage` = "RainGage",
@@ -140,7 +155,8 @@ res_vrr
 
 })
 
-vrr <- data.table::rbindlist(vrr_list)
+data.table::rbindlist(vrr_list)
+}
 
 }
 
