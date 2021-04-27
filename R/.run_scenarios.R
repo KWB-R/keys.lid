@@ -30,9 +30,17 @@ pp_0.05 <- get_vrr(lid_selected,
 pp_0.1 <- get_vrr(lid_selected,
                    lid_area_fraction = 0.1)
 
+pp_0.5 <- get_vrr(lid_selected,
+                  lid_area_fraction = 0.5)
+
+pp_1.0 <- get_vrr(lid_selected,
+                  lid_area_fraction = 1.0)
+
 
 pp <- dplyr::bind_rows(pp_0.01, pp_0.05) %>%
 dplyr::bind_rows(pp_0.1) %>%
+dplyr::bind_rows(pp_0.5) %>%
+dplyr::bind_rows(pp_1.0) %>%
 tidyr::pivot_wider(names_from = "lid_area_fraction",
                    names_prefix = "lidarea.fraction_",
                    values_from = "vrr")
@@ -148,7 +156,7 @@ for(j in seq_len(nrow(res_vrr))) {
                                         Qcolumn = 'runoff')
   rainfall_volume <- sum(yearj$rainfall_depth, na.rm = TRUE)
 
-  res_vrr$vrr[j] <- runoff_volume/rainfall_volume
+  res_vrr$vrr[j] <- 1 - runoff_volume/rainfall_volume
 }
 
 res_vrr
