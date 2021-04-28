@@ -10,16 +10,17 @@ swmm_inp <- swmmr::read_inp(base_model[1])
 swmm_inp$lid_controls
 swmm_inp$lid_usage
 
-cols <- c("Name", "Type/Layer")
-
-lid_scenarios <- keys.lid::read_scenarios()
-
 scenarios <- keys.lid::read_scenarios()
 
+unique(scenarios$lid_name_tidy)
 
 lid <- "permeable_pavement"
 
 lid_selected <- scenarios %>%  dplyr::filter(.data$lid_name_tidy == lid)
+
+
+pp_0.00 <- get_vrr(lid_selected,
+                   lid_area_fraction = 0.00)
 
 pp_0.01 <- get_vrr(lid_selected,
                    lid_area_fraction = 0.01)
@@ -37,11 +38,11 @@ pp_1.0 <- get_vrr(lid_selected,
                   lid_area_fraction = 1.0)
 
 
-pp <- dplyr::bind_rows(pp_0.01, pp_0.05) %>%
-dplyr::bind_rows(pp_0.1) %>%
-dplyr::bind_rows(pp_0.5) %>%
-dplyr::bind_rows(pp_1.0) %>%
-tidyr::pivot_wider(names_from = "lid_area_fraction",
+pp <- dplyr::bind_rows(pp_0.00, pp_0.01) %>%
+  dplyr::bind_rows(pp_0.1) %>%
+  dplyr::bind_rows(pp_0.5) %>%
+  dplyr::bind_rows(pp_1.0) %>%
+  tidyr::pivot_wider(names_from = "lid_area_fraction",
                    names_prefix = "lidarea.fraction_",
                    values_from = "vrr")
 
@@ -93,6 +94,7 @@ path_inp_file <- paste0(sprintf("%s/%s",
                         ".inp")
 path_rpt_file <- stringr::str_replace(path_inp_file, "\\.inp", "\\.rpt")
 path_out_file <- stringr::str_replace(path_inp_file, "\\.inp", "\\.out")
+
 
 swmm_inp$lid_controls <- lid_controls
 swmm_inp$lid_usage  <- lid_usage # lid_controls$Name[1]
@@ -155,6 +157,12 @@ for(j in seq_len(nrow(res_vrr))) {
                                         timeColumn = 'dateTime',
                                         Qcolumn = 'runoff')
   rainfall_volume <- sum(yearj$rainfall_depth, na.rm = TRUE)
+
+  #### add more output parameters
+  #### -> reduction of maximum runoff (per event ?) -> mean reduction runoff
+  #### -> reduction of events time ? -> mean reduction of events time
+  #### > rain: runoff amount / peak (-> 90 percent percentile ?! )
+
 
   res_vrr$vrr[j] <- 1 - runoff_volume/rainfall_volume
 }
