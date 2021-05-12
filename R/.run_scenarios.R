@@ -49,11 +49,14 @@ pp <- dplyr::bind_rows(pp_0.00, pp_0.01) %>%
 get_vrr <- function(
         lid_selected,
         lid_area_fraction = 0.1,
-        catchment_area_m2 = 1000,
-        lid_area_m2 = lid_area_fraction * catchment_area_m2)
+        catchment_area_m2 = 1000)
 {
+
+lid_area_m2 <- lid_area_fraction * catchment_area_m2
+
 scenario_names <- unique(lid_selected$scenario_name)
 vrr_list <- lapply(scenario_names, function(selected_scenario) {
+  # selected_scenario <- scenario_names[1]
 lid_selected_scenario <- lid_selected %>%
   dplyr::filter(.data$scenario_name == selected_scenario)
 
@@ -111,9 +114,15 @@ swmmr::run_swmm(inp = path_inp_file,
                 rpt = path_rpt_file,
                 out = path_out_file)
 
-# read out results for itype 3 (= system) and vIndex 4 (= runoff) and 1(= rainfall)
-results_runoff <- swmmr::read_out(path_out_file, iType = 3, vIndex = 4)
-results_rainfall_rate <- swmmr::read_out(path_out_file, iType = 3, vIndex = 1)
+
+
+results_system <- kwb.swmm::get_results_system(path_out = path_out_file)
+
+rainevent_stats <- calculate_rainevent_stats(results_system,
+                           aggregation_function = "sum",
+                           signalThreshold = 0,
+                           eventSeparationTime = 6*3600)
+
 
 # store results in data frame
 results <- data.frame(
