@@ -57,7 +57,7 @@ vrr_list <- lapply(scenario_names, function(selected_scenario) {
 lid_selected_scenario <- lid_selected %>%
   dplyr::filter(.data$scenario_name == selected_scenario)
 
-lid_controls <- lidconfig_to_swmm(lid_selected_scenario)
+lid_controls <- keys.lid::lidconfig_to_swmm(lid_selected_scenario)
 
 
 subcatchment <- tibble::tibble(Name = "S1",
@@ -176,87 +176,3 @@ data.table::rbindlist(vrr_list)
 
 }
 
-lidconfig_to_swmm <- function(df) {
-
-  lid_para <- readr::read_csv(kwb.swmm::extdata_file("lid/required_parameteristion.csv"))
-
-  lid_parametersation <- df %>%
-    dplyr::select(tidyselect::all_of(c("lid_name_tidy", "type", "id_type_parameter", "scenario_name", "value"))) %>%
-    dplyr::left_join(lid_para  %>%
-                       dplyr::select(.data$lid_id, .data$lid_name_tidy), by = "lid_name_tidy") %>%
-    dplyr::mutate("Name" = sprintf("%s.%s", .data$lid_name_tidy, .data$scenario_name),
-                  "Type/Layer" =  stringr::str_to_upper(.data$type),
-                  ) %>%
-    dplyr::select(tidyselect::all_of(c("Name", "Type/Layer", "id_type_parameter", "value"))) %>%
-    tidyr::pivot_wider(names_from = "id_type_parameter",
-                       names_prefix = "Par",
-                       values_from = "value") %>%
-    dplyr::filter_at(dplyr::vars(tidyselect::starts_with("Par")), dplyr::any_vars(!is.na(.)))
-
-  ## dont know why 5 is needed by SWMM (but generated in SWMM GUI)
-  lid_parametersation[lid_parametersation$`Type/Layer` == "SURFACE", "Par5"] <- 5
-
-  lid_id <- lid_para$lid_id[lid_para$lid_name_tidy == unique(df$lid_name_tidy)]
-
-  lid_header <-   lid_parametersation[1,]
-  lid_header[1,3:ncol(lid_header)] <- NA_real_
-  lid_header$`Type/Layer` <- lid_id
-
-  dplyr::bind_rows(lid_header, lid_parametersation)
-
-}
-
-# # read out results for itype 3 (= system) and vIndex 4 (= runoff) and 1(= rainfall)
-# results_runoff <- swmmr::read_out(out, iType = 3, vIndex = 4)
-# results_rainfall_rate <- swmmr::read_out(out, iType = 3, vIndex = 1)
-#
-# # store results in data frame
-# results <- data.frame(
-#   dateTime = zoo::index(results_runoff$system_variable$total_runoff),
-#   rainfall_rate = zoo::coredata(results_rainfall_rate$system_variable$total_rainfall),
-#   runoff = zoo::coredata(results_runoff$system_variable$total_runoff),
-#   years = format(zoo::index(results_runoff$system_variable$total_runoff),
-#                  format = '%Y'))
-#
-# inp <- stringr::str_replace(out, "\\.out", "\\.inp")
-#
-# swmm_file <- swmmr::read_inp(inp)
-#
-# # convert runoff from l/s to mm/s
-# flow_units <- swmm_file$options[
-#   swmm_file$options$Option == 'FLOW_UNITS', 'Value'][[1]]
-# if(flow_units == 'LPS'){
-#   lidarea <- swmm_file$subcatchments$Area
-#   results$runoff <- results$runoff/(1e4*lidarea)
-# }
-#
-# # compute rainfall depth [mm] based on rainfall rate [mm/hour] and time
-# # step of data [hours]
-#
-# # get time interval in hours
-# dt <- as.numeric(strsplit(x = swmm_file$raingages$Interval,
-#                           split = ':')[[1]])
-# dt <- dt[1] + dt[2]/60
-#
-# # rainfall depth = rainfall rate * time
-# results$rainfall_depth <- results$rainfall_rate*dt
-#
-# # compute annual VRR (volume rainfall retention) for all analysis years
-# # and add it to output data.frame
-# years <- unique(results$years)
-# vrr <- vector(mode = 'numeric', length = length(years))
-# names(vrr) <- years
-# for(j in seq_along(years)){
-#   yearj <- results[results$years == years[j], ]
-#   runoff_volume <- keys.lid::computeVol(data = yearj,
-#                                         timeColumn = 'dateTime',
-#                                         Qcolumn = 'runoff')
-#   rainfall_volume <- sum(yearj$rainfall_depth, na.rm = TRUE)
-#
-#   vrr[j] <- runoff_volume/rainfall_volume
-# }
-#
-# results %>%
-#   dplyr::group_by(.data$years) %>%
-#   dplyr::summarise(rainfall.depth_mm.sum = sum(rainfall_depth),
-#                    runoff_mm.sum = sum(runoff))
