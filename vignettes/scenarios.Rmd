@@ -34,20 +34,23 @@ br <- keys.lid::simulate_performances(
   )
 
 ### Green Roof
-if(FALSE) {
-### not yet working
 gr <- keys.lid::simulate_performances(
   lid_selected = scenarios[scenarios$lid_name_tidy == "green_roof",],
-  lid_area_fractions = c(0, 1)
+  lid_area_fractions = c(0, 1),
+  catchment_area_m2 = 1000
   )
-}
+
 ### "permeable_pavement"
 pp <- keys.lid::simulate_performances(
   lid_selected = scenarios[scenarios$lid_name_tidy == "permeable_pavement",],
-  lid_area_fractions = c(0, 1)
+  lid_area_fractions = c(0, 1),
+  catchment_area_m2 = 1000
   )
+  
 
-performances <- dplyr::bind_rows(br, pp)
+performances <- br %>%  
+  dplyr::bind_rows(gr) %>% 
+  dplyr::bind_rows(pp)
 ```
 
 
