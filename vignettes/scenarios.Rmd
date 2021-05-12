@@ -25,20 +25,29 @@ DT::datatable(scenarios)
 ```
 ## Simulate Performance
 
-```{r simulate_performance, eval = FALSE}
-unique(scenarios$lid_name_tidy)
+```{r simulate_performances, eval = FALSE}
 
-lid <- "permeable_pavement"
+### Bioretention Cell
+br <- keys.lid::simulate_performances(
+  lid_selected = scenarios[scenarios$lid_name_tidy == "bioretention_cell",],
+  lid_area_fractions = c(0, 0.05, 0.1, 0.2)
+  )
 
-lid_selected <- scenarios %>%  dplyr::filter(.data$lid_name_tidy == lid)
+### Green Roof
+if(FALSE) {
+### not yet working
+gr <- keys.lid::simulate_performances(
+  lid_selected = scenarios[scenarios$lid_name_tidy == "green_roof",],
+  lid_area_fractions = c(0, 1)
+  )
+}
+### "permeable_pavement"
+pp <- keys.lid::simulate_performances(
+  lid_selected = scenarios[scenarios$lid_name_tidy == "permeable_pavement",],
+  lid_area_fractions = c(0, 1)
+  )
 
-pp_0.00 <- keys.lid::simulate_performance(lid_selected,
-                                 lid_area_fraction = 0.00)
-
-pp_1.0 <- keys.lid::simulate_performance(lid_selected,
-                                         lid_area_fraction = 1.0)
-
-
-pp <- dplyr::bind_rows(pp_0.00, pp_0.01)
-pp
+performances <- dplyr::bind_rows(br, pp)
 ```
+
+
