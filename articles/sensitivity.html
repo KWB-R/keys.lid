@@ -272,7 +272,7 @@
                                 Qcolumn <span class="op">=</span> <span class="st">'runoff'</span><span class="op">)</span>
     <span class="va">rainfall_volume</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">yearj</span><span class="op">$</span><span class="va">rainfall_depth</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
 
-    <span class="va">vrr</span><span class="op">[</span><span class="va">j</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">runoff_volume</span><span class="op">/</span><span class="va">rainfall_volume</span>
+    <span class="va">vrr</span><span class="op">[</span><span class="va">j</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">1</span> <span class="op">-</span> <span class="va">runoff_volume</span><span class="op">/</span><span class="va">rainfall_volume</span>
   <span class="op">}</span>
 
   <span class="va">sensitivity_results</span><span class="op">[</span><span class="va">i</span>,
