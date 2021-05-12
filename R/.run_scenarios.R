@@ -19,22 +19,22 @@ lid <- "permeable_pavement"
 lid_selected <- scenarios %>%  dplyr::filter(.data$lid_name_tidy == lid)
 
 
-pp_0.00 <- get_vrr(lid_selected,
-                   lid_area_fraction = 0.00)
+pp_0.00 <- calculate_performance(lid_selected,
+                                 lid_area_fraction = 0.00)
 
-pp_0.01 <- get_vrr(lid_selected,
+pp_0.01 <- calculate_performance(lid_selected,
                    lid_area_fraction = 0.01)
 
-pp_0.05 <- get_vrr(lid_selected,
+pp_0.05 <- calculate_performance(lid_selected,
                    lid_area_fraction = 0.05)
 
-pp_0.1 <- get_vrr(lid_selected,
+pp_0.1 <- calculate_performance(lid_selected,
                    lid_area_fraction = 0.1)
 
-pp_0.5 <- get_vrr(lid_selected,
+pp_0.5 <- calculate_performance(lid_selected,
                   lid_area_fraction = 0.5)
 
-pp_1.0 <- get_vrr(lid_selected,
+pp_1.0 <- calculate_performance(lid_selected,
                   lid_area_fraction = 1.0)
 
 
@@ -46,16 +46,16 @@ pp <- dplyr::bind_rows(pp_0.00, pp_0.01) %>%
                    names_prefix = "lidarea.fraction_",
                    values_from = "vrr")
 
-get_vrr <- function(
+calculate_performance <- function(
         lid_selected,
         lid_area_fraction = 0.1,
-        catchment_area_m2 = 1000)
-{
+        catchment_area_m2 = 1000,
+        col_eventsep = "total_rainfall") {
 
 lid_area_m2 <- lid_area_fraction * catchment_area_m2
 
 scenario_names <- unique(lid_selected$scenario_name)
-vrr_list <- lapply(scenario_names, function(selected_scenario) {
+performance_list <- lapply(scenario_names, function(selected_scenario) {
   # selected_scenario <- scenario_names[1]
 lid_selected_scenario <- lid_selected %>%
   dplyr::filter(.data$scenario_name == selected_scenario)
@@ -116,72 +116,32 @@ swmmr::run_swmm(inp = path_inp_file,
 
 
 
-results_system <- kwb.swmm::get_results_system(path_out = path_out_file)
+results_system <- kwb.swmm::get_results(path_out = path_out_file,
+                                        vIndex = c(1,4))
 
-rainevent_stats <- calculate_rainevent_stats(results_system,
-                           aggregation_function = "sum",
-                           signalThreshold = 0,
-                           eventSeparationTime = 6*3600)
-
-
-# store results in data frame
-results <- data.frame(
-  dateTime = zoo::index(results_runoff$system_variable$total_runoff),
-  rainfall_rate = zoo::coredata(results_rainfall_rate$system_variable$total_rainfall),
-  runoff = zoo::coredata(results_runoff$system_variable$total_runoff),
-  years = format(zoo::index(results_runoff$system_variable$total_runoff),
-                 format = '%Y'))
+results_vrr <-  results_system %>%
+  dplyr::mutate(year = lubridate::year(.data$datetime)) %>%
+  dplyr::group_by(.data$year) %>%
+  dplyr::summarise(vrr = 1 - (sum(.data$total_runoff) / sum(.data$total_rainfall)))
 
 
-# convert runoff from l/s to mm/s
-flow_units <- swmm_inp$options[
-  swmm_inp$options$Option == 'FLOW_UNITS', 'Value'][[1]]
-if(flow_units == 'LPS'){
-  lidarea <- swmm_inp$subcatchments$Area
-  results$runoff <- results$runoff/(1e4*lidarea)
-}
+rainevent_stats_sum <- kwb.swmm::calculate_rainevent_stats(results_system,
+                           col_eventsep = col_eventsep,
+                           aggregation_function = "sum") %>%
+  dplyr::arrange(dplyr::desc(.data$sum_total_rainfall))
 
-# compute rainfall depth [mm] based on rainfall rate [mm/hour] and time
-# step of data [hours]
-
-# get time interval in hours
-dt <- as.numeric(strsplit(x = swmm_inp$raingages$Interval,
-                          split = ':')[[1]])
-dt <- dt[1] + dt[2]/60
-
-# rainfall depth = rainfall rate * time
-results$rainfall_depth <- results$rainfall_rate*dt
-
-# compute annual VRR (volume rainfall retention) for all analysis years
-# and add it to output data.frame
-res_vrr <- tibble::tibble(name = lid_controls$Name[1],
-                          years = unique(results$years),
-                          vrr = NA_real_,
-                          lid_area_fraction = lid_area_fraction)
+rainevent_stats_max <- kwb.swmm::calculate_rainevent_stats(results_system,
+                                                           col_eventsep = col_eventsep,
+                                                           aggregation_function = "max") %>%
+  dplyr::arrange(dplyr::desc(.data$max_total_rainfall))
 
 
-for(j in seq_len(nrow(res_vrr))) {
-  yearj <- results[results$years == res_vrr$years[j], ]
-  runoff_volume <- keys.lid::computeVol(data = yearj,
-                                        timeColumn = 'dateTime',
-                                        Qcolumn = 'runoff')
-  rainfall_volume <- sum(yearj$rainfall_depth, na.rm = TRUE)
-
-  #### add more output parameters
-  #### -> reduction of maximum runoff (per event ?) -> mean reduction runoff
-  #### -> reduction of events time ? -> mean reduction of events time
-  #### > rain: runoff amount / peak (-> 90 percent percentile ?! )
-
-
-  res_vrr$vrr[j] <- 1 - runoff_volume/rainfall_volume
-}
-
-res_vrr
+list(vrr = results_vrr,
+     events_sum = rainevent_stats_sum,
+     events_max = rainevent_stats_max)
 
 })
 
-data.table::rbindlist(vrr_list)
-}
-
+performance_list
 }
 
