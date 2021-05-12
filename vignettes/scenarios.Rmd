@@ -2,7 +2,7 @@
 title: "Scenarios"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Scenarios}
+  %\VignetteIndexEntry{"Scenarios"}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -14,10 +14,31 @@ knitr::opts_chunk$set(
 )
 ```
 
+## Scenarios
+
 ```{r setup}
 library(keys.lid)
-lid_scenarios <- keys.lid::read_scenarios()
+scenarios <- keys.lid::read_scenarios()
 
-DT::datatable(lid_scenarios)
+DT::datatable(scenarios)
 
+```
+## Simulate Performance
+
+```{r simulate_performance, eval = FALSE}
+unique(scenarios$lid_name_tidy)
+
+lid <- "permeable_pavement"
+
+lid_selected <- scenarios %>%  dplyr::filter(.data$lid_name_tidy == lid)
+
+pp_0.00 <- keys.lid::simulate_performance(lid_selected,
+                                 lid_area_fraction = 0.00)
+
+pp_1.0 <- keys.lid::simulate_performance(lid_selected,
+                                         lid_area_fraction = 1.0)
+
+
+pp <- dplyr::bind_rows(pp_0.00, pp_0.01)
+pp
 ```
