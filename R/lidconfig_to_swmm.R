@@ -38,7 +38,7 @@ lidconfig_to_swmm <- function(df) {
     tidyr::pivot_wider(names_from = "id_type_parameter",
                        names_prefix = "Par",
                        values_from = "value") %>%
-    dplyr::filter_at(dplyr::vars(tidyselect::starts_with("Par")), dplyr::any_vars(!is.na(.)))
+    dplyr::filter_at(dplyr::vars(tidyselect::starts_with("Par")), dplyr::any_vars(!is.na(.data)))
 
   ## dont know why 5 is needed by SWMM (but generated in SWMM GUI)
   lid_parametersation[lid_parametersation$`Type/Layer` == "SURFACE", "Par5"] <- 5
