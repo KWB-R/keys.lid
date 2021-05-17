@@ -130,7 +130,7 @@
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Simulate Performances of LID</h1>
-    <small class="dont-index">Source: <a href='https://github.com/KWB-R/keys.lid/blob/master/R/simulate_performance.R'><code>R/simulate_performance.R</code></a></small>
+    <small class="dont-index">Source: <a href='https://github.com/KWB-R/keys.lid/blob/master/R/simulate_performances.R'><code>R/simulate_performances.R</code></a></small>
     <div class="hidden name"><code>simulate_performances.Rd</code></div>
     </div>
 
@@ -140,13 +140,13 @@
 
     <pre class="usage"><span class='fu'>simulate_performances</span><span class='op'>(</span>
   <span class='va'>lid_selected</span>,
-  lid_area_fraction <span class='op'>=</span> <span class='fl'>0</span>,
+  lid_area_fractions <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>0</span>, <span class='fl'>1</span><span class='op'>)</span>,
   catchment_area_m2 <span class='op'>=</span> <span class='fl'>1000</span>,
   col_eventsep <span class='op'>=</span> <span class='st'>"total_rainfall"</span>,
- 
-    swmm_base_inp <span class='op'>=</span> <span class='fu'>keys.lid</span><span class='fu'>::</span><span class='fu'><a href='extdata_file.html'>extdata_file</a></span><span class='op'>(</span><span class='st'>"scenarios/models/zone1/model_greenroof_zone1.inp"</span><span class='op'>)</span>,
+  swmm_base_inp <span class='op'>=</span> <span class='fu'>keys.lid</span><span class='fu'>::</span><span class='fu'><a href='extdata_file.html'>extdata_file</a></span><span class='op'>(</span><span class='st'>"scenarios/models/model_template.inp"</span><span class='op'>)</span>,
   swmm_climate_dir <span class='op'>=</span> <span class='fu'>keys.lid</span><span class='fu'>::</span><span class='fu'><a href='extdata_file.html'>extdata_file</a></span><span class='op'>(</span><span class='st'>"rawdata/weather_sponge_regions"</span><span class='op'>)</span>,
-  model_dir <span class='op'>=</span> <span class='fu'>keys.lid</span><span class='fu'>::</span><span class='fu'><a href='extdata_file.html'>extdata_file</a></span><span class='op'>(</span><span class='st'>"scenarios/models/zone1"</span><span class='op'>)</span>
+  model_dir <span class='op'>=</span> <span class='fu'>keys.lid</span><span class='fu'>::</span><span class='fu'><a href='extdata_file.html'>extdata_file</a></span><span class='op'>(</span><span class='st'>"scenarios/models"</span><span class='op'>)</span>,
+  zone_ids <span class='op'>=</span> <span class='fl'>1L</span><span class='op'>:</span><span class='fl'>5L</span>
 <span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
@@ -155,6 +155,10 @@
     <tr>
       <th>lid_selected</th>
       <td><p>tibble with a selected LID as retrieved by <code><a href='read_scenarios.html'>read_scenarios</a></code></p></td>
+    </tr>
+    <tr>
+      <th>lid_area_fractions</th>
+      <td><p>fractions of LID in subcatchment (default: c(0,1)</p></td>
     </tr>
     <tr>
       <th>catchment_area_m2</th>
@@ -168,7 +172,7 @@
     <tr>
       <th>swmm_base_inp</th>
       <td><p>path to SWMM model to be used as template for modification
-(default: keys.lid::extdata_file("scenarios/models/zone1/model_greenroof_zone1.inp"))</p></td>
+(default: keys.lid::extdata_file("scenarios/models/model_template.inp"))</p></td>
     </tr>
     <tr>
       <th>swmm_climate_dir</th>
@@ -177,11 +181,11 @@
     </tr>
     <tr>
       <th>model_dir</th>
-      <td><p>default:  keys.lid::extdata_file("scenarios/models/zone1")</p></td>
+      <td><p>default:  keys.lid::extdata_file("scenarios/models")</p></td>
     </tr>
     <tr>
-      <th>lid_area_fractions</th>
-      <td><p>fractions of LID in subcatchment (default: c(0,1)</p></td>
+      <th>zone_ids</th>
+      <td><p>climate zone ids to be used for simulation (default: 1L:5L)</p></td>
     </tr>
     </table>
 
