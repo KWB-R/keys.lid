@@ -9,6 +9,7 @@
 #' @importFrom dplyr group_by summarise
 #' @importFrom plotly ggplotly layout
 #' @import ggplot2
+#' @importFrom stats median
 #' @examples
 #' \dontrun{
 #' lids <- unique(keys.lid::performances$lid_name_tidy)
@@ -29,7 +30,7 @@ plot_vrr_median <- function(lid = "bioretention_cell") {
                   .data$lid_name_tidy,
                   .data$scenario_name,
                   .data$lid_area_fraction) %>%
-  dplyr::summarise(vrr_median = median(.data$vrr)) %>%
+  dplyr::summarise(vrr_median = stats::median(.data$vrr)) %>%
   dplyr::ungroup() %>%
   ggplot2::ggplot(ggplot2::aes_string(x = "lid_area_fraction",
                                       y = "vrr_median",
