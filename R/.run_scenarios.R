@@ -2,32 +2,31 @@ library(keys.lid)
 
 scenarios <- keys.lid::read_scenarios()
 
-unique(scenarios$lid_name_tidy)
+gr_tbl <- scenarios[scenarios$lid_name_tidy == "green_roof",]
+gr_tbl <- gr[gr$scenario_name == unique(gr$scenario_name)[1],]
 
-lid <- "permeable_pavement"
+### Bioretention Cell
+br <- keys.lid::simulate_performances(
+  lid_selected = scenarios[scenarios$lid_name_tidy == "bioretention_cell",],
+  lid_area_fractions = c(0, 0.05, 0.1, 0.2),
+  catchment_area_m2 = 1000
+  )
 
-lid_selected <- scenarios %>%  dplyr::filter(.data$lid_name_tidy == lid)
+### Green Roof
+gr <- keys.lid::simulate_performances(
+  lid_selected = scenarios[scenarios$lid_name_tidy == "green_roof",],
+  lid_area_fractions = c(0,1),
+  catchment_area_m2 = 1000,
+  )
 
-pp_0.00 <- keys.lid::simulate_performance(lid_selected,
-                                 lid_area_fraction = 0.00)
-
-pp_0.01 <- keys.lid::simulate_performance(lid_selected,
-                   lid_area_fraction = 0.01)
-
-pp_0.05 <- keys.lid::simulate_performance(lid_selected,
-                   lid_area_fraction = 0.05)
-
-pp_0.1 <- keys.lid::simulate_performance(lid_selected,
-                   lid_area_fraction = 0.1)
-
-pp_0.5 <- keys.lid::simulate_performance(lid_selected,
-                  lid_area_fraction = 0.5)
-
-pp_1.0 <- keys.lid::simulate_performance(lid_selected,
-                                         lid_area_fraction = 1.0)
+### "permeable_pavement"
+pp <- keys.lid::simulate_performances(
+  lid_selected = scenarios[scenarios$lid_name_tidy == "permeable_pavement",],
+  lid_area_fractions = c(0, 1),
+  catchment_area_m2 = 1000
+  )
 
 
-pp <- dplyr::bind_rows(pp_0.00, pp_0.01) %>%
-  dplyr::bind_rows(pp_0.1) %>%
-  dplyr::bind_rows(pp_0.5) %>%
-  dplyr::bind_rows(pp_1.0)
+performances <- br %>%
+  dplyr::bind_rows(gr) %>%
+  dplyr::bind_rows(pp)

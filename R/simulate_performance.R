@@ -6,13 +6,13 @@
 #' @param col_eventsep SWMM output column used for event separation (default:
 #' "total_rainfall")
 #' @param swmm_base_inp path to SWMM model to be used as template for modification
-#' (default: keys.lid::extdata_file("scenarios/models/zone1/model_greenroof_zone1.inp"))
+#' (default: keys.lid::extdata_file("scenarios/models/model_template.inp"))
 #' @param swmm_climate_dir directory with climate data
 #' (default: keys.lid::extdata_file("rawdata/weather_sponge_regions")
-#' @param model_dir default:  keys.lid::extdata_file("scenarios/models/zone1")
+#' @param model_dir default:  keys.lid::extdata_file("scenarios/models")
+#' @param zone_ids climate zone ids to be used for simulation (default: 1L:5L)
 
 #' @return tibble with nested lists containing all scenario performance
-#' @export
 #' @importFrom dplyr arrange desc
 #' @importFrom rlang .data
 #' @importFrom lubridate year
@@ -20,7 +20,8 @@
 #' @importFrom stringr str_replace
 #' @importFrom swmmr read_inp run_swmm write_inp
 #' @importFrom kwb.swmm calculate_rainevent_stats get_results
-#' @importFrom withr with_dir
+#' @importFrom kwb.utils resolve catAndRun
+#' @export
 #' @examples
 #' \dontrun{
 #' scenarios <- keys.lid::read_scenarios()
@@ -38,17 +39,23 @@ simulate_performance <- function(
   lid_area_fraction = 0,
   catchment_area_m2 = 1000,
   col_eventsep = "total_rainfall",
-  swmm_base_inp = keys.lid::extdata_file("scenarios/models/zone1/model_greenroof_zone1.inp"),
+  swmm_base_inp = keys.lid::extdata_file("scenarios/models/model_template.inp"),
   swmm_climate_dir = keys.lid::extdata_file("rawdata/weather_sponge_regions"),
-  model_dir = keys.lid::extdata_file("scenarios/models/zone1")
+  model_dir = keys.lid::extdata_file("scenarios/models"),
+  zone_ids = 1L:5L
 ) {
 
   swmm_inp <- swmmr::read_inp(swmm_base_inp)
 
   lid_area_m2 <- lid_area_fraction * catchment_area_m2
 
+  lapply(zone_ids, function(zone_id) {
   scenario_names <- unique(lid_selected$scenario_name)
-
+  msg_txt <- sprintf("Simulating LID '%s' with %s scenarios for climate zone %d (remaining: %d)",
+                     unique(lid_selected$lid_name_tidy),
+                     length(scenario_names),
+                     zone_id, length(zone_ids)-zone_id)
+  kwb.utils::catAndRun(messageText = msg_txt, expr = {
   lapply(scenario_names, function(selected_scenario) {
     lid_selected_scenario <- lid_selected %>%
       dplyr::filter(.data$scenario_name == selected_scenario)
@@ -93,14 +100,31 @@ simulate_performance <- function(
     swmm_inp$lid_controls <- lid_controls
     swmm_inp$lid_usage  <- lid_usage # lid_controls$Name[1]
 
-    swmmr::write_inp(swmm_inp, file = path_inp_file)
 
-    withr::with_dir(new = swmm_climate_dir,
-                    code = {
-    swmmr::run_swmm(inp = path_inp_file,
-                    rpt = path_rpt_file,
-                    out = path_out_file)
-                      })
+    paths_list <- list(temp = "<climate_dir>/swmm_climeng_zone<zone_id>_temp.txt",
+                       rain = "<climate_dir>/swmm_bwsti_zone<zone_id>_rain_hourly.txt"
+                       )
+
+    paths <- kwb.utils::resolve(paths_list,
+                                climate_dir = swmm_climate_dir,
+                                zone_id = zone_id)
+
+    stopifnot(all(file.exists(unlist(paths)
+                              )
+                  )
+              )
+
+
+  swmm_inp$raingages$Source <- sprintf('FILE       \"%s\" BWSTI      MM',
+                                         normalizePath(paths$rain))
+  swmm_inp$temperature[swmm_inp$temperature$`Data Element`=="FILE", "Values"] <- sprintf('\"%s\"',
+                                                                                         normalizePath(paths$temp))
+
+  swmmr::write_inp(swmm_inp, file = path_inp_file)
+  swmmr::run_swmm(inp = path_inp_file,
+                  rpt = path_rpt_file,
+                  out = path_out_file)
+
 
 
 
@@ -140,5 +164,7 @@ simulate_performance <- function(
   }) %>%
     dplyr::bind_rows()
 
-}
+})}) %>% dplyr::bind_rows(.id = "zone_id")
 
+
+}

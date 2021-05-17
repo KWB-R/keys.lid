@@ -2,7 +2,7 @@
 title: "Scenarios"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{"Scenarios"}
+  %\VignetteIndexEntry{Scenarios}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

@@ -9,10 +9,10 @@ simulate_performance(
   lid_area_fraction = 0,
   catchment_area_m2 = 1000,
   col_eventsep = "total_rainfall",
- 
-    swmm_base_inp = keys.lid::extdata_file("scenarios/models/zone1/model_greenroof_zone1.inp"),
+  swmm_base_inp = keys.lid::extdata_file("scenarios/models/model_template.inp"),
   swmm_climate_dir = keys.lid::extdata_file("rawdata/weather_sponge_regions"),
-  model_dir = tempdir()
+  model_dir = keys.lid::extdata_file("scenarios/models"),
+  zone_ids = 1L:5L
 )
 }
 \arguments{
@@ -26,12 +26,14 @@ simulate_performance(
 "total_rainfall")}
 
 \item{swmm_base_inp}{path to SWMM model to be used as template for modification
-(default: keys.lid::extdata_file("scenarios/models/zone1/model_greenroof_zone1.inp"))}
+(default: keys.lid::extdata_file("scenarios/models/model_template.inp"))}
 
-\item{swmm_climate_dir}{directory with climate data #'
+\item{swmm_climate_dir}{directory with climate data
 (default: keys.lid::extdata_file("rawdata/weather_sponge_regions")}
 
-\item{model_dir}{default: tempdir()}
+\item{model_dir}{default:  keys.lid::extdata_file("scenarios/models")}
+
+\item{zone_ids}{climate zone ids to be used for simulation (default: 1L:5L)}
 }
 \value{
 tibble with nested lists containing all scenario performance
