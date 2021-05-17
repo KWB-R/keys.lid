@@ -24,6 +24,8 @@ Description: R Package for Simulating the Impact of Different
 License: MIT + file LICENSE
 URL: https://github.com/KWB-R/keys.lid
 BugReports: https://github.com/KWB-R/keys.lid/issues
+Depends: 
+    R (>= 2.10)
 Imports: 
     dplyr,
     lubridate,

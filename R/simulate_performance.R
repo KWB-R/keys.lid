@@ -160,7 +160,7 @@ simulate_performance <- function(
                    lid_controls = list(lid_controls),
                    subcatchment = list(subcatchment),
                    annual = list(results_vrr),
-                   events_min = list(rainevent_stats_sum),
+                   events_sum = list(rainevent_stats_sum),
                    events_max = list(rainevent_stats_max),
                    col_eventsep = col_eventsep,
                    model_inp = path_inp_file,
