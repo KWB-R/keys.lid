@@ -4,10 +4,15 @@
 \alias{plot_vrr_median}
 \title{Plot Median VRR}
 \usage{
-plot_vrr_median(lid = "bioretention_cell")
+plot_vrr_median(
+  lid = "bioretention_cell",
+  performances = keys.lid::performances
+)
 }
 \arguments{
 \item{lid}{tidy name of LID}
+
+\item{performances}{nested tibble (default: \code{\link{performance}})}
 }
 \value{
 interactive plot of performance results

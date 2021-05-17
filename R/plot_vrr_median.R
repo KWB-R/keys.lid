@@ -2,7 +2,7 @@
 #' Plot Median VRR
 #'
 #' @param lid tidy name of LID
-#'
+#' @param performances nested tibble (default: \code{\link{performance}})
 #' @return interactive plot of performance results
 #' @export
 #' @importFrom tidyr unnest
@@ -15,7 +15,8 @@
 #' lids <- unique(keys.lid::performances$lid_name_tidy)
 #' sapply(lids, function(lid) print(keys.lid::plot_vrr_median(lid)))
 #' }
-plot_vrr_median <- function(lid = "bioretention_cell") {
+plot_vrr_median <- function(lid = "bioretention_cell",
+                            performances = keys.lid::performances) {
 
   perf_selected <- performances %>%
     dplyr::filter(.data$lid_name_tidy == lid)

@@ -22,5 +22,4 @@
 #'   \item{model_rpt}{path to SWMM model report file}
 #'   \item{model_out}{path to SWMM model output file}
 #' }
-#' @export
 "performances"
