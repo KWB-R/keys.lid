@@ -26,6 +26,7 @@ lidconfig_to_swmm <- function(df) {
   lid_para <- readr::read_csv(kwb.swmm::extdata_file("lid/required_parameteristion.csv"))
 
   lid_parametersation <- df %>%
+    dplyr::filter(!is.na(.data$id_type_parameter)) %>%
     dplyr::select(tidyselect::all_of(c("lid_name_tidy", "type", "id_type_parameter", "scenario_name", "value"))) %>%
     dplyr::left_join(lid_para  %>%
                        dplyr::select(.data$lid_id, .data$lid_name_tidy), by = "lid_name_tidy") %>%
