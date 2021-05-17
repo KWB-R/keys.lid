@@ -51,7 +51,7 @@ simulate_performance <- function(
 
   lapply(zone_ids, function(zone_id) {
   scenario_names <- unique(lid_selected$scenario_name)
-  msg_txt <- sprintf("Simulating LID '%s' with %s scenarios for climate zone %d (remaining: %d)",
+  msg_txt <- sprintf("Simulating LID '%s' with %s scenarios for climate zone %d (remaining zones: %d)",
                      unique(lid_selected$lid_name_tidy),
                      length(scenario_names),
                      zone_id, length(zone_ids)-zone_id)
@@ -90,8 +90,11 @@ simulate_performance <- function(
     )
 
 
-    path_inp_file <- paste0(sprintf("%s/%s",
-                                    model_dir, lid_controls$Name[1]),
+    path_inp_file <- paste0(sprintf("%s/zone-%d_%s_lidshare-%1.2f",
+                                    model_dir,
+                                    zone_id,
+                                    lid_controls$Name[1],
+                                    lid_area_fraction),
                             ".inp")
     path_rpt_file <- stringr::str_replace(path_inp_file, "\\.inp", "\\.rpt")
     path_out_file <- stringr::str_replace(path_inp_file, "\\.inp", "\\.out")

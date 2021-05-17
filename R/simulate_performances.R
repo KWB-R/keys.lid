@@ -48,7 +48,7 @@ simulate_performances <- function(
     stats::setNames(
       lapply(lid_area_fractions, function(lid_area_fraction) {
       simulate_performance(lid_selected,
-                           lid_area_fractions,
+                           lid_area_fraction,
                            catchment_area_m2,
                            col_eventsep,
                            swmm_base_inp,
