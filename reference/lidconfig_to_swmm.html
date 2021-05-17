@@ -165,19 +165,7 @@
 <span class='va'>scenario_name</span>
 </div><div class='output co'>#&gt; [1] "45mm.per.hour_with-drainage"</div><div class='input'><span class='va'>lid_selected_scenario</span> <span class='op'>&lt;-</span> <span class='va'>lid_selected</span><span class='op'>[</span><span class='va'>lid_selected</span><span class='op'>$</span><span class='va'>scenario_name</span> <span class='op'>==</span> <span class='va'>scenario_name</span>,<span class='op'>]</span>
 <span class='va'>lid_controls</span> <span class='op'>&lt;-</span> <span class='fu'>lidconfig_to_swmm</span><span class='op'>(</span><span class='va'>lid_selected_scenario</span><span class='op'>)</span>
-</div><div class='output co'>#&gt; <span class='message'></span>
-#&gt; <span class='message'><span style='color: #00BBBB;'>──</span><span> </span><span style='font-weight: bold;'>Column specification</span><span> </span><span style='color: #00BBBB;'>────────────────────────────────────────────────────────</span><span></span>
-#&gt; <span class='message'>cols(</span>
-#&gt; <span class='message'>  lid_id = </span><span style='color: #BB0000;'>col_character()</span><span>,</span>
-#&gt; <span class='message'>  lid_name = </span><span style='color: #BB0000;'>col_character()</span><span>,</span>
-#&gt; <span class='message'>  lid_name_tidy = </span><span style='color: #BB0000;'>col_character()</span><span>,</span>
-#&gt; <span class='message'>  surface = </span><span style='color: #BB0000;'>col_character()</span><span>,</span>
-#&gt; <span class='message'>  pavement = </span><span style='color: #BB0000;'>col_character()</span><span>,</span>
-#&gt; <span class='message'>  soil = </span><span style='color: #BB0000;'>col_character()</span><span>,</span>
-#&gt; <span class='message'>  storage = </span><span style='color: #BB0000;'>col_character()</span><span>,</span>
-#&gt; <span class='message'>  drain = </span><span style='color: #BB0000;'>col_character()</span><span>,</span>
-#&gt; <span class='message'>  drainmat = </span><span style='color: #BB0000;'>col_character()</span><span></span>
-#&gt; <span class='message'>)</span></div><div class='input'><span class='fu'><a href='https://rdrr.io/r/utils/str.html'>str</a></span><span class='op'>(</span><span class='va'>lid_controls</span><span class='op'>)</span>
+<span class='fu'><a href='https://rdrr.io/r/utils/str.html'>str</a></span><span class='op'>(</span><span class='va'>lid_controls</span><span class='op'>)</span>
 </div><div class='output co'>#&gt; tibble [5 × 9] (S3: tbl_df/tbl/data.frame)
 #&gt;  $ Name      : chr [1:5] "permeable_pavement.45mm.per.hour_with-drainage" "permeable_pavement.45mm.per.hour_with-drainage" "permeable_pavement.45mm.per.hour_with-drainage" "permeable_pavement.45mm.per.hour_with-drainage" ...
 #&gt;  $ Type/Layer: chr [1:5] "PP" "SURFACE" "PAVEMENT" "STORAGE" ...
@@ -187,7 +175,7 @@
 #&gt;  $ Par4      : num [1:5] NA 2.5 45 0 0
 #&gt;  $ Par5      : num [1:5] NA 5 0 NA 0
 #&gt;  $ Par6      : num [1:5] NA NA 0 NA NA
-#&gt;  $ Par7      : num [1:5] NA NA 0 NA NA</div></span></pre>
+#&gt;  $ Par7      : num [1:5] NA NA 0 NA NA</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
