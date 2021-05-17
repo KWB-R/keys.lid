@@ -42,4 +42,9 @@ performances <- br %>%
 #saveRDS(object = performances, file = "performances.rds")
 #readRDS(file = "performances.rds")
 
-usethis::use_data(performances, overwrite = TRUE)
+### Check different compression formats (as recommended by Rcmdcheck):
+### https://cran.r-project.org/doc/manuals/r-release/R-exts.html#Data-in-packages
+
+#usethis::use_data(performances, compress = "gzip", overwrite = TRUE) #44.6MB
+#usethis::use_data(performances, compress = "bzip2", overwrite = TRUE) #18.9MB
+usethis::use_data(performances, compress = "xz", overwrite = TRUE) #0.6MB
