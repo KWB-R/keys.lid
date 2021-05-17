@@ -3,9 +3,9 @@
 #' \code{\link{read_scenarios}})
 #' @return data frame with SWMM LID controls
 #' @export
-#' @importFrom readr read_csv
+#' @importFrom readr cols read_csv
 #' @importFrom kwb.swmm extdata_file
-#' @importFrom dplyr any_vars bind_rows filter_at left_join mutate select vars
+#' @importFrom dplyr any_vars bind_rows filter_at left_join mutate select vars select_if
 #' @importFrom tidyr pivot_wider
 #' @importFrom rlang .data
 #' @importFrom tidyselect all_of starts_with
@@ -23,7 +23,8 @@
 #' str(lid_controls)
 lidconfig_to_swmm <- function(df) {
 
-  lid_para <- readr::read_csv(kwb.swmm::extdata_file("lid/required_parameteristion.csv"))
+  lid_para <- readr::read_csv(kwb.swmm::extdata_file("lid/required_parameteristion.csv"),
+                              col_types = readr::cols(.default = "c"))
 
   lid_parametersation <- df %>%
     dplyr::filter(!is.na(.data$id_type_parameter)) %>%
@@ -37,7 +38,8 @@ lidconfig_to_swmm <- function(df) {
     tidyr::pivot_wider(names_from = "id_type_parameter",
                        names_prefix = "Par",
                        values_from = "value") %>%
-    dplyr::filter_at(dplyr::vars(tidyselect::starts_with("Par")), dplyr::any_vars(!is.na(.)))
+    dplyr::filter_at(dplyr::vars(tidyselect::starts_with("Par")), dplyr::any_vars(!is.na(.))) %>%
+    dplyr::select_if(colSums(!is.na(.)) > 0)
 
   ## dont know why 5 is needed by SWMM (but generated in SWMM GUI)
   lid_parametersation[lid_parametersation$`Type/Layer` == "SURFACE", "Par5"] <- 5
