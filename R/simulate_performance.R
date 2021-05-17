@@ -162,7 +162,10 @@ simulate_performance <- function(
                    annual = list(results_vrr),
                    events_min = list(rainevent_stats_sum),
                    events_max = list(rainevent_stats_max),
-                   col_eventsep = col_eventsep)
+                   col_eventsep = col_eventsep,
+                   model_inp = path_inp_file,
+                   model_rpt = path_rpt_file,
+                   model_out = path_out_file)
 
   }) %>%
     dplyr::bind_rows()
