@@ -12,6 +12,8 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+
+#keys.lid::performances
 ```
 
 ## Scenarios
@@ -25,32 +27,81 @@ DT::datatable(scenarios)
 ```
 ## Simulate Performance
 
+The SWMM simulations (years: 2008 - 2019) and calculation of 
+performance metrics (volume rainfall retended, rainfall event sums/max) for four 
+LIDs with different parameterisations and for five different climate zones 
+in China (in total: 290 model runs) takes about 2h 20min (~ 30 seconds per model 
+run) on my laptop.
+
 ```{r simulate_performances, eval = FALSE}
 
 ### Bioretention Cell
 br <- keys.lid::simulate_performances(
   lid_selected = scenarios[scenarios$lid_name_tidy == "bioretention_cell",],
-  lid_area_fractions = c(0, 0.05, 0.1, 0.2)
-  )
+  lid_area_fractions = c(0, 0.05, 0.1, 0.2),
+  catchment_area_m2 = 1000
+)
 
 ### Green Roof
 gr <- keys.lid::simulate_performances(
   lid_selected = scenarios[scenarios$lid_name_tidy == "green_roof",],
-  lid_area_fractions = c(0, 1),
-  catchment_area_m2 = 1000
-  )
+  lid_area_fractions = c(0,1),
+  catchment_area_m2 = 1000,
+)
 
-### "permeable_pavement"
+### Permeable Pavement
 pp <- keys.lid::simulate_performances(
   lid_selected = scenarios[scenarios$lid_name_tidy == "permeable_pavement",],
   lid_area_fractions = c(0, 1),
   catchment_area_m2 = 1000
-  )
-  
+)
 
-performances <- br %>%  
-  dplyr::bind_rows(gr) %>% 
-  dplyr::bind_rows(pp)
+### Rain Barrel
+rb <- keys.lid::simulate_performances(
+  lid_selected = scenarios[scenarios$lid_name_tidy == "rain_barrel",],
+  lid_area_fractions = c(0, 0.1, 0.2, 0.4),
+  catchment_area_m2 = 1000
+)
+
+
+performances <- br %>%
+  dplyr::bind_rows(gr) %>%
+  dplyr::bind_rows(pp) %>%
+  dplyr::bind_rows(rb)
 ```
 
+## Evaluate Performance
 
+### Median Volume Rainfall Retended 
+
+#### Bioretention Cell 
+
+```{r evaluate_performance_vrr_br, fig.height=7, fig.width=7}
+
+keys.lid::plot_vrr_median("bioretention_cell")
+
+```
+
+#### Green Roof 
+
+```{r evaluate_performance_vrr_gr, fig.height=7, fig.width=7}
+
+keys.lid::plot_vrr_median("green_roof")
+
+```
+
+#### Permeable Pavements 
+
+```{r evaluate_performance_vrr_pp, fig.height=7, fig.width=7}
+
+keys.lid::plot_vrr_median("permeable_pavement")
+
+```
+
+#### Rain Barrel
+
+```{r evaluate_performance_vrr_rr, fig.height=7, fig.width=7}
+
+keys.lid::plot_vrr_median("rain_barrel")
+
+```

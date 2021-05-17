@@ -28,10 +28,12 @@ Depends:
     R (>= 2.10)
 Imports: 
     dplyr,
+    ggplot2,
     lubridate,
     kwb.event,
     kwb.swmm,
     kwb.utils,
+    plotly,
     stringr,
     swmmr,
     readr,
