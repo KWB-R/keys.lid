@@ -72,7 +72,7 @@ performances <- br %>%
 
 ## Evaluate Performance
 
-### Median Volume Rainfall Retended 
+### Median Volume Rainfall Retended per Year
 
 #### Bioretention Cell 
 
@@ -103,5 +103,60 @@ keys.lid::plot_vrr_median("permeable_pavement")
 ```{r evaluate_performance_vrr_rr, fig.height=7, fig.width=7}
 
 keys.lid::plot_vrr_median("rain_barrel")
+
+```
+
+### Boxplots
+
+Example for LID **green roof** in **climate zones 1 and 5**
+
+#### Volume Rainfall Retended 
+
+**Zone 1**
+
+```{r evaluate_performance_boxplot_vrr_gr_zone1, fig.height=7, fig.width=7}
+
+keys.lid::boxplot_vrr(lid = "green_roof", zone_id = 1)
+
+```
+**Zone 5**
+
+```{r evaluate_performance_boxplot_vrr_gr_zone5, fig.height=7, fig.width=7}
+
+keys.lid::boxplot_vrr(lid = "green_roof", zone_id = 5)
+
+```
+
+#### Runoff Maximum per Event 
+
+**Zone 1**
+
+```{r evaluate_performance_boxplot_runoff_max_gr_zone1, fig.height=7, fig.width=7}
+
+keys.lid::boxplot_runoff_max(lid = "green_roof", zone_id = 1)
+
+```
+**Zone 5**
+
+```{r evaluate_performance_boxplot_runoff_max_gr_zone5, fig.height=7, fig.width=7}
+
+keys.lid::boxplot_runoff_max(lid = "green_roof", zone_id = 5)
+
+```
+
+#### Runoff Volume per Event 
+
+**Zone 1**
+
+```{r evaluate_performance_boxplot_runoff_volume_gr_zone1, fig.height=7, fig.width=7}
+
+keys.lid::boxplot_runoff_volume(lid = "green_roof", zone_id = 1)
+
+```
+**Zone 5**
+
+```{r evaluate_performance_boxplot_runoff_volume_gr_zone5, fig.height=7, fig.width=7}
+
+keys.lid::boxplot_runoff_volume(lid = "green_roof", zone_id = 5)
 
 ```
