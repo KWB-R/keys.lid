@@ -12,7 +12,7 @@ plot_vrr_median(
 \arguments{
 \item{lid}{tidy name of LID}
 
-\item{performances}{nested tibble (default: \code{\link{performance}})}
+\item{performances}{nested tibble (default: \link{performance})}
 }
 \value{
 interactive plot of performance results

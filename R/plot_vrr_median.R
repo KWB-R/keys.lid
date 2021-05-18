@@ -2,7 +2,7 @@
 #' Plot Median VRR
 #'
 #' @param lid tidy name of LID
-#' @param performances nested tibble (default: \code{\link{performance}})
+#' @param performances nested tibble (default: \link{performance})
 #' @return interactive plot of performance results
 #' @export
 #' @importFrom tidyr unnest
