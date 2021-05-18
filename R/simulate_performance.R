@@ -66,7 +66,7 @@ simulate_performance <- function(
     subcatchment <- tibble::tibble(Name = "S1",
                                    `Rain Gage` = "RainGage",
                                    Outlet = "Out1",
-                                   Area = keys.lid::squaremeter_to_hectar(catchment_area_m2),
+                                   Area = kwb.swmm::squaremeter_to_hectar(catchment_area_m2),
                                    Perc_Imperv = 100,
                                    Width = 6,
                                    Perc_Slope = 0.5,
