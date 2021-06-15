@@ -49,6 +49,7 @@ lidconfig_to_swmm <- function(df) {
   lid_header[1,3:ncol(lid_header)] <- NA_real_
   lid_header$`Type/Layer` <- lid_id
 
-  dplyr::bind_rows(lid_header, lid_parametersation)
+  dplyr::bind_rows(lid_header, lid_parametersation) %>%
+  dplyr::filter(!is.na(.data$value))
 
 }
