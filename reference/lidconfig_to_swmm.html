@@ -165,17 +165,10 @@
 <span class='va'>scenario_name</span>
 </div><div class='output co'>#&gt; [1] "45mm.per.hour_with-drainage"</div><div class='input'><span class='va'>lid_selected_scenario</span> <span class='op'>&lt;-</span> <span class='va'>lid_selected</span><span class='op'>[</span><span class='va'>lid_selected</span><span class='op'>$</span><span class='va'>scenario_name</span> <span class='op'>==</span> <span class='va'>scenario_name</span>,<span class='op'>]</span>
 <span class='va'>lid_controls</span> <span class='op'>&lt;-</span> <span class='fu'>lidconfig_to_swmm</span><span class='op'>(</span><span class='va'>lid_selected_scenario</span><span class='op'>)</span>
-<span class='fu'><a href='https://rdrr.io/r/utils/str.html'>str</a></span><span class='op'>(</span><span class='va'>lid_controls</span><span class='op'>)</span>
-</div><div class='output co'>#&gt; tibble [5 × 9] (S3: tbl_df/tbl/data.frame)
-#&gt;  $ Name      : chr [1:5] "permeable_pavement.45mm.per.hour_with-drainage" "permeable_pavement.45mm.per.hour_with-drainage" "permeable_pavement.45mm.per.hour_with-drainage" "permeable_pavement.45mm.per.hour_with-drainage" ...
-#&gt;  $ Type/Layer: chr [1:5] "PP" "SURFACE" "PAVEMENT" "STORAGE" ...
-#&gt;  $ Par1      : num [1:5] NA 0 80 350 1
-#&gt;  $ Par2      : num [1:5] NA 0 0.165 0.3 0.4
-#&gt;  $ Par3      : num [1:5] NA 0.12 0.85 1.8 0
-#&gt;  $ Par4      : num [1:5] NA 2.5 45 0 0
-#&gt;  $ Par5      : num [1:5] NA 5 0 NA 0
-#&gt;  $ Par6      : num [1:5] NA NA 0 NA NA
-#&gt;  $ Par7      : num [1:5] NA NA 0 NA NA</div></pre>
+</div><div class='output co'>#&gt; <span class='error'>Error: Problem with `filter()` input `..1`.</span>
+#&gt; <span class='error'><span style='color: #0000BB;'>ℹ</span> Input `..1` is `!is.na(.data$value)`.</span>
+#&gt; <span class='error'><span style='color: #BB0000;'>✖</span> Column `value` not found in `.data`</span></div><div class='input'><span class='fu'><a href='https://rdrr.io/r/utils/str.html'>str</a></span><span class='op'>(</span><span class='va'>lid_controls</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; <span class='error'>Error in str(lid_controls): object 'lid_controls' not found</span></div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
