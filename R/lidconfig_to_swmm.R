@@ -27,6 +27,7 @@ lidconfig_to_swmm <- function(df) {
                               col_types = readr::cols(.default = "c"))
 
   lid_parametersation <- df %>%
+    dplyr::filter(!is.na(.data$value)) %>%
     dplyr::filter(!is.na(.data$id_type_parameter)) %>%
     dplyr::select(tidyselect::all_of(c("lid_name_tidy", "type", "id_type_parameter", "scenario_name", "value"))) %>%
     dplyr::left_join(lid_para  %>%
@@ -34,6 +35,7 @@ lidconfig_to_swmm <- function(df) {
     dplyr::mutate("Name" = sprintf("%s.%s", .data$lid_name_tidy, .data$scenario_name),
                   "Type/Layer" =  stringr::str_to_upper(.data$type),
     ) %>%
+    dplyr::filter(!is.na(.data$value)) %>%
     dplyr::select(tidyselect::all_of(c("Name", "Type/Layer", "id_type_parameter", "value"))) %>%
     tidyr::pivot_wider(names_from = "id_type_parameter",
                        names_prefix = "Par",
@@ -49,7 +51,6 @@ lidconfig_to_swmm <- function(df) {
   lid_header[1,3:ncol(lid_header)] <- NA_real_
   lid_header$`Type/Layer` <- lid_id
 
-  dplyr::bind_rows(lid_header, lid_parametersation) %>%
-  dplyr::filter(!is.na(.data$value))
+  dplyr::bind_rows(lid_header, lid_parametersation)
 
 }
