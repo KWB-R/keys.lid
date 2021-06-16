@@ -17,7 +17,7 @@
 #' @param zone_ids climate zone ids to be used for simulation (default: 1L:5L)
 
 #' @return tibble with nested lists containing all scenario performance
-#' @importFrom dplyr arrange desc if_else
+#' @importFrom dplyr arrange desc
 #' @importFrom rlang .data
 #' @importFrom lubridate year
 #' @importFrom tibble tibble
@@ -145,9 +145,7 @@ simulate_performance <- function(
 
     results_system <- kwb.swmm::get_results(path_out = path_out_file,
                                             vIndex = c(1,4)) %>%
-      dplyr::mutate(total_runoff_mmPerHour = dplyr::if_else(flow_unit == "LPS",
-                                lps_to_mmPerHour(.data$total_runoff),
-                                NA_real_))
+      dplyr::mutate(total_runoff_mmPerHour = lps_to_mmPerHour(.data$total_runoff))
 
     results_vrr <-  results_system %>%
       dplyr::mutate(year = lubridate::year(.data$datetime)) %>%
