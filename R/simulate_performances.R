@@ -1,17 +1,7 @@
 #' Simulate Performances of LID
 #'
-#' @param lid_selected tibble with a selected LID as retrieved by \code{\link{read_scenarios}}
 #' @param lid_area_fractions fractions of LID in subcatchment (default: c(0,1)
-#' @param catchment_area_m2 catchment area (default: 1000 m2)
-#' @param col_eventsep SWMM output column used for event separation (default:
-#' "total_rainfall")
-#' @param swmm_base_inp path to SWMM model to be used as template for modification
-#' (default: keys.lid::extdata_file("scenarios/models/model_template.inp"))
-#' @param swmm_climate_dir directory with climate data
-#' (default: keys.lid::extdata_file("rawdata/weather_sponge_regions")
-#' @param model_dir default:  keys.lid::extdata_file("scenarios/models")
-#' @param zone_ids climate zone ids to be used for simulation (default: 1L:5L)
-
+#' @inheritParams simulate_performance
 #' @return tibble with nested lists containing all scenario performances for
 #' varying lid_area_fractions
 #' @export
@@ -40,6 +30,7 @@ simulate_performances <- function(
   col_eventsep = "total_rainfall",
   swmm_base_inp = keys.lid::extdata_file("scenarios/models/model_template.inp"),
   swmm_climate_dir = keys.lid::extdata_file("rawdata/weather_sponge_regions"),
+  swmm_exe = NULL,
   model_dir = keys.lid::extdata_file("scenarios/models"),
   zone_ids = 1L:5L
 ) {
@@ -53,6 +44,7 @@ simulate_performances <- function(
                            col_eventsep,
                            swmm_base_inp,
                            swmm_climate_dir,
+                           swmm_exe,
                            model_dir,
                            zone_ids)
     }), nm = label) %>%
