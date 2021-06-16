@@ -13,7 +13,7 @@
 #' @param zone_ids climate zone ids to be used for simulation (default: 1L:5L)
 
 #' @return tibble with nested lists containing all scenario performance
-#' @importFrom dplyr arrange desc
+#' @importFrom dplyr arrange desc if_else
 #' @importFrom rlang .data
 #' @importFrom lubridate year
 #' @importFrom tibble tibble
@@ -46,6 +46,9 @@ simulate_performance <- function(
 ) {
 
   swmm_inp <- swmmr::read_inp(swmm_base_inp)
+
+  flow_unit <- swmm_inp$options$Value[swmm_inp$options$Option == "FLOW_UNITS"]
+  stopifnot(flow_unit == "LPS")
 
   lid_area_m2 <- lid_area_fraction * catchment_area_m2
 
@@ -129,15 +132,20 @@ simulate_performance <- function(
                   out = path_out_file)
 
 
-
+   lps_to_mmPerHour <- function(values) {
+     values * 3.6
+   }
 
     results_system <- kwb.swmm::get_results(path_out = path_out_file,
-                                            vIndex = c(1,4))
+                                            vIndex = c(1,4)) %>%
+      dplyr::mutate(total_runoff_mmPerHour = dplyr::if_else(flow_unit == "LPS",
+                                lps_to_mmPerHour(.data$total_runoff),
+                                NA_real_))
 
     results_vrr <-  results_system %>%
       dplyr::mutate(year = lubridate::year(.data$datetime)) %>%
       dplyr::group_by(.data$year) %>%
-      dplyr::summarise(vrr = 1 - (sum(.data$total_runoff) / sum(.data$total_rainfall)))
+      dplyr::summarise(vrr = 1 - (sum(.data$total_runoff_mmPerHour) / sum(.data$total_rainfall)))
 
 
     rainevent_stats_sum <- kwb.swmm::calculate_rainevent_stats(results_system,

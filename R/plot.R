@@ -132,7 +132,7 @@ boxplot_runoff_max <- function(lid = "bioretention_cell",
                     .data$scenario_name,
                     .data$lid_area_fraction) %>%
     plotly::plot_ly(x = ~lid_area_fraction,
-                    y = ~max_total_runoff,
+                    y = ~max_total_runoff_mmPerHour,
                     color = ~scenario_name,
                     type = "box") %>%
     plotly::layout(boxmode = "group",
@@ -181,7 +181,7 @@ boxplot_runoff_volume <- function(lid = "bioretention_cell",
                     .data$scenario_name,
                     .data$lid_area_fraction) %>%
     plotly::plot_ly(x = ~lid_area_fraction,
-                    y = ~sum_total_runoff,
+                    y = ~sum_total_runoff_mmPerHour,
                     color = ~scenario_name,
                     type = "box") %>%
     plotly::layout(boxmode = "group",
