@@ -9,6 +9,10 @@
 #' (default: keys.lid::extdata_file("scenarios/models/model_template.inp"))
 #' @param swmm_climate_dir directory with climate data
 #' (default: keys.lid::extdata_file("rawdata/weather_sponge_regions")
+#' @param swmm_exe Name and path to swmm5 executable. If not manually set,
+#' the following paths are looked up: linux: "/usr/bin/swmm5" darwin:
+#' "/Applications/swmm5" windows: "C:/Program Files (x86)/EPA SWMM 5.1/swmm5.exe",
+#' (default: NULL)
 #' @param model_dir default:  keys.lid::extdata_file("scenarios/models")
 #' @param zone_ids climate zone ids to be used for simulation (default: 1L:5L)
 
@@ -41,6 +45,7 @@ simulate_performance <- function(
   col_eventsep = "total_rainfall",
   swmm_base_inp = keys.lid::extdata_file("scenarios/models/model_template.inp"),
   swmm_climate_dir = keys.lid::extdata_file("rawdata/weather_sponge_regions"),
+  swmm_exe = NULL,
   model_dir = keys.lid::extdata_file("scenarios/models"),
   zone_ids = 1L:5L
 ) {
@@ -129,7 +134,9 @@ simulate_performance <- function(
   swmmr::write_inp(swmm_inp, file = path_inp_file)
   swmmr::run_swmm(inp = path_inp_file,
                   rpt = path_rpt_file,
-                  out = path_out_file)
+                  out = path_out_file,
+                  exec = swmm_exe
+                  )
 
 
    lps_to_mmPerHour <- function(values) {
