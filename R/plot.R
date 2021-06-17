@@ -40,12 +40,16 @@ plot_vrr_median <- function(lid = "bioretention_cell",
     ggplot2::geom_point() +
     ggplot2::labs(title = sprintf("%s (catchment area: %d m2)",
                                   lid,
-                                  catchment_area_m2)) +
+                                  catchment_area_m2)) +#,
+                  #y = "Median Volume Rainfall Retended per Year (%)") +
+    ggplot2::coord_cartesian(ylim = c(0,1)) +
+    ggplot2::scale_y_continuous(labels = scales::percent_format(accuracy = 0)) +
     ggplot2::theme_bw() +
     ggplot2::theme(legend.position = "bottom")
 
   plotly::ggplotly(g) %>%
-    plotly::layout(legend = list(orientation = "h", x = 0, y = -0.1 ))
+    plotly::layout(legend = list(orientation = "h", x = 0, y = -0.1 ))#,
+                   #ylab = list(orientation = "v", x = -0.5, y = 0 ))
 }
 
 #' Boxplot Volume Rainfall Retended per Year
@@ -94,7 +98,8 @@ boxplot_vrr <- function(lid = "bioretention_cell",
                                    lid,
                                    catchment_area_m2),
                    xaxis = list(title='LID area fraction'),
-                   yaxis = list(title='Volume Rainfall Retended (%)'),
+                   yaxis = list(title='Volume Rainfall Retended (%)',
+                                range = c(0, 100)),
                    legend = list(orientation = "h", x = 0, y = -0.1 ))
 
 
