@@ -6,7 +6,7 @@
 \usage{
 boxplot_runoff_volume(
   lid = "bioretention_cell",
-  zone_id = 5,
+  zone_id = 1,
   performances = keys.lid::performances
 )
 }

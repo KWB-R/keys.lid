@@ -66,9 +66,12 @@ boxplot_vrr <- function(lid = "bioretention_cell",
                         zone_id = 1,
                         performances = keys.lid::performances) {
 
+  sel_zone <- as.integer(zone_id)
+
   perf_selected <- performances %>%
+    dplyr::mutate(zone_id = as.integer(.data$zone_id)) %>%
     dplyr::filter(.data$lid_name_tidy == lid,
-                  .data$zone_id == zone_id)
+                  .data$zone_id == sel_zone)
 
   catchment_area_m2 <- unique(perf_selected$catchment_area_m2)
 
@@ -116,9 +119,12 @@ boxplot_runoff_max <- function(lid = "bioretention_cell",
                                zone_id = 1,
                                performances = keys.lid::performances) {
 
+  sel_zone <- as.integer(zone_id)
+
   perf_selected <- performances %>%
+    dplyr::mutate(zone_id = as.integer(.data$zone_id)) %>%
     dplyr::filter(.data$lid_name_tidy == lid,
-                  .data$zone_id == zone_id)
+                  .data$zone_id == sel_zone)
 
   catchment_area_m2 <- unique(perf_selected$catchment_area_m2)
 
@@ -162,12 +168,15 @@ boxplot_runoff_max <- function(lid = "bioretention_cell",
 #' boxplot_runoff_volume(lid = "bioretention_cell", zone_id = 1)
 #' }
 boxplot_runoff_volume <- function(lid = "bioretention_cell",
-                               zone_id = 5,
+                               zone_id = 1,
                                performances = keys.lid::performances) {
 
+  sel_zone <- as.integer(zone_id)
+
   perf_selected <- performances %>%
+    dplyr::mutate(zone_id = as.integer(.data$zone_id)) %>%
     dplyr::filter(.data$lid_name_tidy == lid,
-                  .data$zone_id == zone_id)
+                  .data$zone_id == sel_zone)
 
   catchment_area_m2 <- unique(perf_selected$catchment_area_m2)
 
@@ -180,8 +189,9 @@ boxplot_runoff_volume <- function(lid = "bioretention_cell",
                     .data$lid_name_tidy,
                     .data$scenario_name,
                     .data$lid_area_fraction) %>%
+    dplyr::mutate(sum_total_runoff_cbm = .data$dur * .data$sum_total_runoff / 1000 / catchment_area_m2) %>%
     plotly::plot_ly(x = ~lid_area_fraction,
-                    y = ~sum_total_runoff_mmPerHour,
+                    y = ~sum_total_runoff_cbm,
                     color = ~scenario_name,
                     type = "box") %>%
     plotly::layout(boxmode = "group",
@@ -190,7 +200,7 @@ boxplot_runoff_volume <- function(lid = "bioretention_cell",
                                    lid,
                                    catchment_area_m2),
                    xaxis = list(title='LID area fraction'),
-                   yaxis = list(title='Total Runoff Volume (litre / m2 per event)'),
+                   yaxis = list(title='Total Runoff Volume (m3 per m2 per event)'),
                    legend = list(orientation = "h", x = 0, y = -0.1 ))
 
 
