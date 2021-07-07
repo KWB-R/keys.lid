@@ -34,6 +34,7 @@ Imports:
     kwb.swmm,
     kwb.utils,
     plotly,
+    scales,
     stringr,
     swmmr,
     readr,
