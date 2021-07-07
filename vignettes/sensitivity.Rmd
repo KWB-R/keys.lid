@@ -188,7 +188,7 @@ for(i in seq_len(l)){
                                 Qcolumn = 'runoff')
     rainfall_volume <- sum(yearj$rainfall_depth, na.rm = TRUE)
 
-    vrr[j] <- runoff_volume/rainfall_volume
+    vrr[j] <- 1 - runoff_volume/rainfall_volume
   }
 
   sensitivity_results[i,

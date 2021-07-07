@@ -8,3 +8,4 @@
 ^codecov\.yml$
 ^index\.md$
 ^README\.md$
+^data-raw$

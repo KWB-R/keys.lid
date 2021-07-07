@@ -12,12 +12,189 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+
+#keys.lid::performances
 ```
+
+## Scenarios
 
 ```{r setup}
 library(keys.lid)
-lid_scenarios <- keys.lid::read_scenarios()
 
-DT::datatable(lid_scenarios)
+paths_list <- list(
+  swmm_exe = "C:/Program Files (x86)/EPA SWMM 5.1.015/swmm5.exe"
+  )
+
+paths <- kwb.utils::resolve(paths_list)
+
+
+scenarios <- keys.lid::read_scenarios()
+
+DT::datatable(scenarios)
+
+
+```
+## Simulate Performance
+
+The SWMM simulations (years: 2008 - 2019) and calculation of 
+performance metrics (volume rainfall retended, rainfall event sums/max) for four 
+LIDs with different parameterisations and for five different climate zones 
+in China (in total: 290 model runs) takes about 2h 20min (~ 30 seconds per model 
+run) on my laptop.
+
+```{r simulate_performances, eval = FALSE}
+
+### Bioretention Cell
+br <- keys.lid::simulate_performances(
+  lid_selected = scenarios[scenarios$lid_name_tidy == "bioretention_cell",],
+  lid_area_fractions = c(0, 0.05, 0.1, 0.2),
+  catchment_area_m2 = 1000,
+  swmm_exe = paths$swmm_exe
+)
+
+### Green Roof
+gr <- keys.lid::simulate_performances(
+  lid_selected = scenarios[scenarios$lid_name_tidy == "green_roof",],
+  lid_area_fractions = c(0,1),
+  catchment_area_m2 = 1000,
+  swmm_exe = paths$swmm_exe
+)
+
+### Permeable Pavement
+pp <- keys.lid::simulate_performances(
+  lid_selected = scenarios[scenarios$lid_name_tidy == "permeable_pavement",],
+  lid_area_fractions = c(0, 1),
+  catchment_area_m2 = 1000,
+  swmm_exe = paths$swmm_exe
+)
+
+### Rain Barrel
+rb <- keys.lid::simulate_performances(
+  lid_selected = scenarios[scenarios$lid_name_tidy == "rain_barrel",],
+  lid_area_fractions = c(0, 0.1, 0.2, 0.4),
+  catchment_area_m2 = 1000,
+  swmm_exe = paths$swmm_exe
+)
+
+
+performances <- br %>%
+  dplyr::bind_rows(gr) %>%
+  dplyr::bind_rows(pp) %>%
+  dplyr::bind_rows(rb)
+```
+
+## Evaluate Performance
+
+### Median Volume Rainfall Retended per Year
+
+#### Bioretention Cell 
+
+```{r evaluate_performance_vrr_br, fig.height=7, fig.width=7}
+
+keys.lid::plot_vrr_median("bioretention_cell")
+
+```
+
+#### Green Roof 
+
+```{r evaluate_performance_vrr_gr, fig.height=7, fig.width=7}
+
+keys.lid::plot_vrr_median("green_roof")
+
+```
+
+#### Permeable Pavements 
+
+```{r evaluate_performance_vrr_pp, fig.height=7, fig.width=7}
+
+keys.lid::plot_vrr_median("permeable_pavement")
+
+```
+
+#### Rain Barrel
+
+```{r evaluate_performance_vrr_rr, fig.height=7, fig.width=7}
+
+keys.lid::plot_vrr_median("rain_barrel")
+
+```
+
+### Boxplots
+
+Example for LID **green roof** in **climate zones 1 and 5**
+
+#### Volume Rainfall Retended 
+
+**Zone 1**
+
+```{r evaluate_performance_boxplot_vrr_gr_zone1, fig.height=7, fig.width=7}
+
+keys.lid::boxplot_vrr(lid = "green_roof", zone_id = 1)
+
+```
+
+**Zone 2**
+
+```{r evaluate_performance_boxplot_vrr_gr_zone2, fig.height=7, fig.width=7}
+
+keys.lid::boxplot_vrr(lid = "green_roof", zone_id = 2)
+
+```
+
+**Zone 3**
+
+```{r evaluate_performance_boxplot_vrr_gr_zone3, fig.height=7, fig.width=7}
+
+keys.lid::boxplot_vrr(lid = "green_roof", zone_id = 3)
+
+```
+
+**Zone 4**
+
+```{r evaluate_performance_boxplot_vrr_gr_zone4, fig.height=7, fig.width=7}
+
+keys.lid::boxplot_vrr(lid = "green_roof", zone_id = 4)
+
+```
+
+**Zone 5**
+
+```{r evaluate_performance_boxplot_vrr_gr_zone5, fig.height=7, fig.width=7}
+
+keys.lid::boxplot_vrr(lid = "green_roof", zone_id = 5)
+
+```
+
+#### Runoff Maximum per Event 
+
+**Zone 1**
+
+```{r evaluate_performance_boxplot_runoff_max_gr_zone1, fig.height=7, fig.width=7}
+
+keys.lid::boxplot_runoff_max(lid = "green_roof", zone_id = 1)
+
+```
+**Zone 5**
+
+```{r evaluate_performance_boxplot_runoff_max_gr_zone5, fig.height=7, fig.width=7}
+
+keys.lid::boxplot_runoff_max(lid = "green_roof", zone_id = 5)
+
+```
+
+#### Runoff Volume per Event 
+
+**Zone 1**
+
+```{r evaluate_performance_boxplot_runoff_volume_gr_zone1, fig.height=7, fig.width=7}
+
+keys.lid::boxplot_runoff_volume(lid = "green_roof", zone_id = 1)
+
+```
+**Zone 5**
+
+```{r evaluate_performance_boxplot_runoff_volume_gr_zone5, fig.height=7, fig.width=7}
+
+keys.lid::boxplot_runoff_volume(lid = "green_roof", zone_id = 5)
 
 ```
