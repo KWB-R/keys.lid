@@ -14,7 +14,7 @@ paths <- kwb.utils::resolve(paths_list)
 ### Bioretention Cell
 br <- keys.lid::simulate_performances(
   lid_selected = scenarios[scenarios$lid_name_tidy == "bioretention_cell",],
-  lid_area_fractions = c(0, 0.05, 0.1, 0.2),
+  lid_area_fractions = c(0,1),
   catchment_area_m2 = 1000,
   swmm_exe = paths$swmm_exe
 )
