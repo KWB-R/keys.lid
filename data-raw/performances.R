@@ -10,39 +10,40 @@ paths_list <- list(
 paths <- kwb.utils::resolve(paths_list)
 
 ### takes about 2.5h for all four LIDs to simulate
+catchment_area_m2 <- 1000
+lid_area_fractions <- c(0,0.5,1)
 
 ### Bioretention Cell
 br <- keys.lid::simulate_performances(
   lid_selected = scenarios[scenarios$lid_name_tidy == "bioretention_cell",],
-  lid_area_fractions = c(0,1),
-  catchment_area_m2 = 1000,
+  lid_area_fractions = lid_area_fractions,
+  catchment_area_m2 = catchment_area_m2,
   swmm_exe = paths$swmm_exe
 )
 
 ### Green Roof
 gr <- keys.lid::simulate_performances(
   lid_selected = scenarios[scenarios$lid_name_tidy == "green_roof",],
-  lid_area_fractions = c(0,1),
-  catchment_area_m2 = 1000,
+  lid_area_fractions = lid_area_fractions,
+  catchment_area_m2 = catchment_area_m2,
   swmm_exe = paths$swmm_exe
 )
 
 ### Permeable Pavement
 pp <- keys.lid::simulate_performances(
   lid_selected = scenarios[scenarios$lid_name_tidy == "permeable_pavement",],
-  lid_area_fractions = c(0, 1),
-  catchment_area_m2 = 1000,
+  lid_area_fractions = lid_area_fractions,
+  catchment_area_m2 = catchment_area_m2,
   swmm_exe = paths$swmm_exe
 )
 
 ### Rain Barrel
 rb <- keys.lid::simulate_performances(
   lid_selected = scenarios[scenarios$lid_name_tidy == "rain_barrel",],
-  lid_area_fractions = c(0, 0.1, 0.2, 0.4),
-  catchment_area_m2 = 1000,
+  lid_area_fractions = lid_area_fractions,
+  catchment_area_m2 = catchment_area_m2,
   swmm_exe = paths$swmm_exe
 )
-
 
 performances <- br %>%
   dplyr::bind_rows(gr) %>%
