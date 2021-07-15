@@ -12,6 +12,11 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+n_runs <- nrow(keys.lid::performances)
+seconds_per_run <- 30
+run_total <- n_runs * seconds_per_run / 3600
+run_total_hours <- round(run_total,0)
+run_total_minutes <- round(60*(run_total - run_total_hours),0) 
 
 #keys.lid::performances
 ```
@@ -39,8 +44,7 @@ DT::datatable(scenarios)
 The SWMM simulations (years: 2008 - 2019) and calculation of 
 performance metrics (volume rainfall retended, rainfall event sums/max) for four 
 LIDs with different parameterisations and for five different climate zones 
-in China (in total: 290 model runs) takes about 2h 20min (~ 30 seconds per model 
-run) on my laptop.
+in China (in total: `r n_runs` model runs, which takes about `r seconds_per_run` `seconds per run`, i.e. in total `r run_total_hours` hours  `r run_total_minutes` minutes on my laptop).
 
 ```{r simulate_performances, eval = FALSE}
 
