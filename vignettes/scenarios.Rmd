@@ -206,3 +206,11 @@ keys.lid::boxplot_runoff_volume(lid = "green_roof", zone_id = 1)
 keys.lid::boxplot_runoff_volume(lid = "green_roof", zone_id = 5)
 
 ```
+
+## Export Results to Excel
+
+```{r export_results_to_excel, eval = FALSE}
+
+keys.lid::export_performances()
+
+```
