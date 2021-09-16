@@ -30,7 +30,7 @@ plot_vrr_median <- function(lid = "bioretention_cell",
                     .data$lid_name_tidy,
                     .data$scenario_name,
                     .data$lid_area_fraction) %>%
-    dplyr::summarise(vrr_median = stats::median(.data$vrr)) %>%
+    dplyr::summarise(vrr_median = stats::median(.data$vrr), .groups = "drop") %>%
     dplyr::ungroup() %>%
     ggplot2::ggplot(ggplot2::aes_string(x = "lid_area_fraction",
                                         y = "vrr_median",
@@ -41,15 +41,22 @@ plot_vrr_median <- function(lid = "bioretention_cell",
     ggplot2::labs(title = sprintf("%s (catchment area: %d m2)",
                                   lid,
                                   catchment_area_m2),
-                  y = "Median Volume Rainfall Retended per Year (%)") +
+                  y = "",
+                  x = "") +
     ggplot2::coord_cartesian(ylim = c(0,1)) +
+    ggplot2::scale_x_continuous(labels = scales::percent_format(accuracy = 1)) +
     ggplot2::scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
     ggplot2::theme_bw() +
     ggplot2::theme(legend.position = "bottom")
 
   plotly::ggplotly(g) %>%
     plotly::layout(legend = list(orientation = "h", x = 0, y = -0.1 ),
-                   ylab = list(orientation = "v", x = 0, y = -0.4 ))
+                   xaxis = list(title=list(text="LID area fraction (%)",
+                                           standoff = 0)),
+                   yaxis = list(title=list(text=paste("Median Volume Rainfall Retended per Year (%)",
+                   "                                                        ."),
+                                           automargin = TRUE))
+                  )
 }
 
 #' Boxplot Volume Rainfall Retended per Year
@@ -80,7 +87,7 @@ boxplot_vrr <- function(lid = "bioretention_cell",
   catchment_area_m2 <- unique(perf_selected$catchment_area_m2)
 
   perf_selected %>%
-    dplyr::mutate(lid_area_fraction = as.factor(.data$lid_area_fraction),
+    dplyr::mutate(lid_area_fraction = as.factor(.data$lid_area_fraction*100),
                   scenario_name = as.factor(.data$scenario_name),
                   label = sprintf("%s (%d m2)", .data$scenario_name, .data$lid_area_m2)) %>%
     tidyr::unnest(.data$annual) %>%
@@ -97,7 +104,8 @@ boxplot_vrr <- function(lid = "bioretention_cell",
                                    zone_id,
                                    lid,
                                    catchment_area_m2),
-                   xaxis = list(title='LID area fraction'),
+                   xaxis = list(title='LID area fraction (%)',
+                                standoff = 0),
                    yaxis = list(title='Volume Rainfall Retended (%)',
                                 range = c(0, 100)),
                    legend = list(orientation = "h", x = 0, y = -0.1 ))
@@ -134,7 +142,7 @@ boxplot_runoff_max <- function(lid = "bioretention_cell",
   catchment_area_m2 <- unique(perf_selected$catchment_area_m2)
 
   perf_selected %>%
-    dplyr::mutate(lid_area_fraction = as.factor(lid_area_fraction),
+    dplyr::mutate(lid_area_fraction = as.factor(lid_area_fraction*100),
                   scenario_name = as.factor(.data$scenario_name),
                   label = sprintf("%s (%d m2)", .data$scenario_name, .data$lid_area_m2)) %>%
     tidyr::unnest(.data$events_max) %>%
@@ -151,7 +159,8 @@ boxplot_runoff_max <- function(lid = "bioretention_cell",
                                    zone_id,
                                    lid,
                                    catchment_area_m2),
-                   xaxis = list(title='LID area fraction'),
+                   xaxis = list(title='LID area fraction (%)',
+                                standoff = 0),
                    yaxis = list(title='Maximum total runoff (mm/h per event)'),
                    legend = list(orientation = "h", x = 0, y = -0.1 ))
 
@@ -204,7 +213,8 @@ boxplot_runoff_volume <- function(lid = "bioretention_cell",
                                    zone_id,
                                    lid,
                                    catchment_area_m2),
-                   xaxis = list(title='LID area fraction'),
+                   xaxis = list(title='LID area fraction (%)',
+                                standoff = 0),
                    yaxis = list(title='Total Runoff Volume (m3 per m2 per event)'),
                    legend = list(orientation = "h", x = 0, y = -0.1 ))
 
