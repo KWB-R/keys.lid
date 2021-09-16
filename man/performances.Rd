@@ -5,7 +5,7 @@
 \alias{performances}
 \title{Performance results for LIDs}
 \format{
-A nested tibble with 290 rows and 16 variables:
+A nested tibble with 575 rows and 16 variables:
 \describe{
 \item{zone_id}{climate zone id}
 \item{lid_name_tidy}{tidy LID name}

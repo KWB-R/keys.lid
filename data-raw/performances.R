@@ -11,7 +11,7 @@ paths <- kwb.utils::resolve(paths_list)
 
 ### takes about 2.5h for all four LIDs to simulate
 catchment_area_m2 <- 1000
-lid_area_fractions <- c(0,0.5,1)
+lid_area_fractions <- c(0,0.25,0.5,0.75,1)
 
 ### Bioretention Cell
 br <- keys.lid::simulate_performances(
@@ -47,8 +47,7 @@ rb <- keys.lid::simulate_performances(
 
 performances <- br %>%
   dplyr::bind_rows(gr) %>%
-  dplyr::bind_rows(pp) %>%
-  dplyr::bind_rows(rb)
+  dplyr::bind_rows(pp)
 
 #saveRDS(object = performances, file = "performances.rds")
 #readRDS(file = "performances.rds")

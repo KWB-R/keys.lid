@@ -50,7 +50,7 @@ in China (in total: `r n_runs` model runs, which takes about `r seconds_per_run`
 
 ### takes about 2.5h for all four LIDs to simulate
 catchment_area_m2 <- 1000
-lid_area_fractions <- c(0,0.5,1)
+lid_area_fractions <- c(0,0.25,0.5,0.75,1)
 
 ### Bioretention Cell
 br <- keys.lid::simulate_performances(
@@ -76,18 +76,10 @@ pp <- keys.lid::simulate_performances(
   swmm_exe = paths$swmm_exe
 )
 
-### Rain Barrel
-rb <- keys.lid::simulate_performances(
-  lid_selected = scenarios[scenarios$lid_name_tidy == "rain_barrel",],
-  lid_area_fractions = lid_area_fractions,
-  catchment_area_m2 = catchment_area_m2,
-  swmm_exe = paths$swmm_exe
-)
 
 performances <- br %>%
   dplyr::bind_rows(gr) %>%
-  dplyr::bind_rows(pp) %>%
-  dplyr::bind_rows(rb)
+  dplyr::bind_rows(pp)
 
 ```
 
@@ -119,13 +111,6 @@ keys.lid::plot_vrr_median("permeable_pavement")
 
 ```
 
-#### Rain Barrel
-
-```{r evaluate_performance_vrr_rr, fig.height=7, fig.width=7}
-
-keys.lid::plot_vrr_median("rain_barrel")
-
-```
 
 ### Boxplots
 
