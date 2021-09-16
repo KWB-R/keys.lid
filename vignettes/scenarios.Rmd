@@ -18,11 +18,11 @@ run_total <- n_runs * seconds_per_run / 3600
 run_total_hours <- round(run_total,0)
 run_total_minutes <- round(60*(run_total - run_total_hours),0) 
 
-vrr_fig_height <- 7
-vrr_fig_width <- 10
+vrr_fig_height <- 8.5
+vrr_fig_width <- 8.5
 
 bp_fig_height <- 7
-bp_fig_width <- 10
+bp_fig_width <- 8.5
 #keys.lid::performances
 ```
 
