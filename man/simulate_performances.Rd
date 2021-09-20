@@ -8,7 +8,6 @@ simulate_performances(
   lid_selected,
   lid_area_fractions = c(0, 1),
   catchment_area_m2 = 1000,
-  col_eventsep = "total_rainfall",
   swmm_base_inp = keys.lid::extdata_file("scenarios/models/model_template.inp"),
   swmm_climate_dir = keys.lid::extdata_file("rawdata/weather_sponge_regions"),
   swmm_exe = NULL,
@@ -22,9 +21,6 @@ simulate_performances(
 \item{lid_area_fractions}{fractions of LID in subcatchment (default: c(0,1)}
 
 \item{catchment_area_m2}{catchment area (default: 1000 m2)}
-
-\item{col_eventsep}{SWMM output column used for event separation (default:
-"total_rainfall")}
 
 \item{swmm_base_inp}{path to SWMM model to be used as template for modification
 (default: keys.lid::extdata_file("scenarios/models/model_template.inp"))}
