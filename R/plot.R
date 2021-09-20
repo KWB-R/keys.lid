@@ -203,9 +203,9 @@ boxplot_runoff_volume <- function(lid = "bioretention_cell",
                     .data$lid_name_tidy,
                     .data$scenario_name,
                     .data$lid_area_fraction) %>%
-    dplyr::mutate(sum_total_runoff_cbm = .data$dur * .data$sum_total_runoff / 1000 / catchment_area_m2) %>%
+    dplyr::mutate(runoff_cbmPerSqm = .data$runoff_cbm / catchment_area_m2) %>%
     plotly::plot_ly(x = ~lid_area_fraction,
-                    y = ~sum_total_runoff_cbm,
+                    y = ~runoff_cbmPerSqm,
                     color = ~scenario_name,
                     type = "box") %>%
     plotly::layout(boxmode = "group",
@@ -213,9 +213,9 @@ boxplot_runoff_volume <- function(lid = "bioretention_cell",
                                    zone_id,
                                    lid,
                                    catchment_area_m2),
-                   xaxis = list(title='LID area fraction (%)',
+                   xaxis = list(title="LID area fraction (%)",
                                 standoff = 0),
-                   yaxis = list(title='Total Runoff Volume (m3 per m2 per event)'),
+                   yaxis = list(title="Total Runoff Volume (m3 per m2 per event)"),
                    legend = list(orientation = "h", x = 0, y = -0.1 ))
 
 
