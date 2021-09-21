@@ -203,7 +203,7 @@ boxplot_runoff_volume <- function(lid = "bioretention_cell",
                     .data$lid_name_tidy,
                     .data$scenario_name,
                     .data$lid_area_fraction) %>%
-    dplyr::mutate(runoff_LitrePerSqm = .data$runoff_cbm * 1000 / catchment_area_m2) %>%
+    dplyr::mutate(runoff_LitrePerSqm = .data$runoff_cbm * 1000) %>%
     plotly::plot_ly(x = ~lid_area_fraction,
                     y = ~runoff_LitrePerSqm,
                     color = ~scenario_name,
