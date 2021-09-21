@@ -37,14 +37,6 @@ pp <- keys.lid::simulate_performances(
   swmm_exe = paths$swmm_exe
 )
 
-### Rain Barrel
-rb <- keys.lid::simulate_performances(
-  lid_selected = scenarios[scenarios$lid_name_tidy == "rain_barrel",],
-  lid_area_fractions = lid_area_fractions,
-  catchment_area_m2 = catchment_area_m2,
-  swmm_exe = paths$swmm_exe
-)
-
 performances <- br %>%
   dplyr::bind_rows(gr) %>%
   dplyr::bind_rows(pp)
