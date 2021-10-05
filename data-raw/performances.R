@@ -41,6 +41,30 @@ performances <- br %>%
   dplyr::bind_rows(gr) %>%
   dplyr::bind_rows(pp)
 
+scenarios <- keys.lid::performances
+
+performances <- scenarios[scenarios$lid_name_tidy == "bioretention_cell",] %>%
+  dplyr::bind_rows(gr) %>%
+  scenarios[scenarios$lid_name_tidy == "permeable_pavement",]
+
+performances_event_percentiles <- get_event_percentiles(performances)
+export_dir <- "."
+keys.lid::export_performances(export_dir = export_dir)
+path_wb <- file.path(export_dir, "swmm_lid-performances.xlsx")
+wb <- openxlsx::loadWorkbook(file = path_wb)
+openxlsx::addWorksheet(wb = wb,
+                       sheetName = "event_max_percentiles")
+openxlsx::writeData(wb,
+                    sheet = "event_max_percentiles",
+                    x = performances_event_percentiles$event_max_percentiles)
+openxlsx::addWorksheet(wb = wb,
+                       sheetName = "event_sum_percentiles")
+openxlsx::writeData(wb,
+                    sheet = "event_sum_percentiles",
+                    x = performances_event_percentiles$event_sum_percentiles)
+openxlsx::saveWorkbook(wb = wb,
+                       file = path_wb,
+                       overwrite = TRUE)
 #saveRDS(object = performances, file = "performances.rds")
 #readRDS(file = "performances.rds")
 
