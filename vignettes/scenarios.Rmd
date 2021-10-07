@@ -119,9 +119,51 @@ keys.lid::plot_vrr_median("permeable_pavement")
 
 ### Boxplots
 
-Example for LID **green roof** in **climate zones 1 and 5**
-
 #### Volume Rainfall Retended 
+
+##### Bioretention Cell
+
+**Zone 1**
+
+```{r evaluate_performance_boxplot_vrr_bc_zone1, fig.height=bp_fig_height, fig.width=bp_fig_width}
+
+keys.lid::boxplot_vrr(lid = "bioretention_cell", zone_id = 1)
+
+```
+
+**Zone 2**
+
+```{r evaluate_performance_boxplot_vrr_bc_zone2, fig.height=bp_fig_height, fig.width=bp_fig_width}
+
+keys.lid::boxplot_vrr(lid = "bioretention_cell", zone_id = 2)
+
+```
+
+**Zone 3**
+
+```{r evaluate_performance_boxplot_vrr_bc_zone3, fig.height=bp_fig_height, fig.width=bp_fig_width}
+
+keys.lid::boxplot_vrr(lid = "bioretention_cell", zone_id = 3)
+
+```
+
+**Zone 4**
+
+```{r evaluate_performance_boxplot_vrr_bc_zone4, fig.height=bp_fig_height, fig.width=bp_fig_width}
+
+keys.lid::boxplot_vrr(lid = "bioretention_cell", zone_id = 4)
+
+```
+
+**Zone 5**
+
+```{r evaluate_performance_boxplot_vrr_bc_zone5, fig.height=bp_fig_height, fig.width=bp_fig_width}
+
+keys.lid::boxplot_vrr(lid = "bioretention_cell", zone_id = 5)
+
+```
+
+##### Green Roof
 
 **Zone 1**
 
@@ -160,6 +202,48 @@ keys.lid::boxplot_vrr(lid = "green_roof", zone_id = 4)
 ```{r evaluate_performance_boxplot_vrr_gr_zone5, fig.height=bp_fig_height, fig.width=bp_fig_width}
 
 keys.lid::boxplot_vrr(lid = "green_roof", zone_id = 5)
+
+```
+
+##### Permeable Pavement
+
+**Zone 1**
+
+```{r evaluate_performance_boxplot_vrr_pp_zone1, fig.height=bp_fig_height, fig.width=bp_fig_width}
+
+keys.lid::boxplot_vrr(lid = "permeable_pavement", zone_id = 1)
+
+```
+
+**Zone 2**
+
+```{r evaluate_performance_boxplot_vrr_pp_zone2, fig.height=bp_fig_height, fig.width=bp_fig_width}
+
+keys.lid::boxplot_vrr(lid = "permeable_pavement", zone_id = 2)
+
+```
+
+**Zone 3**
+
+```{r evaluate_performance_boxplot_vrr_pp_zone3, fig.height=bp_fig_height, fig.width=bp_fig_width}
+
+keys.lid::boxplot_vrr(lid = "permeable_pavement", zone_id = 3)
+
+```
+
+**Zone 4**
+
+```{r evaluate_performance_boxplot_vrr_pp_zone4, fig.height=bp_fig_height, fig.width=bp_fig_width}
+
+keys.lid::boxplot_vrr(lid = "permeable_pavement", zone_id = 4)
+
+```
+
+**Zone 5**
+
+```{r evaluate_performance_boxplot_vrr_pp_zone5, fig.height=bp_fig_height, fig.width=bp_fig_width}
+
+keys.lid::boxplot_vrr(lid = "permeable_pavement", zone_id = 5)
 
 ```
 
