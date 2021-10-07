@@ -12,10 +12,12 @@ volume <- performances %>%
   tidyr::unnest(.data$events_sum)
 
 sel_cols <- c("zone_id",
-                "lid_name_tidy",
-                "scenario_name",
-                "lid_area_fraction",
-                "runoff_cbm")
+              "lid_name_tidy",
+              "scenario_name",
+              "lid_area_fraction",
+              "runoff_cbm",
+              "tBeg",
+              "tEnd")
 
 volume_stats <- volume %>%
   dplyr::select(tidyselect::all_of(sel_cols)) %>%
@@ -24,7 +26,13 @@ volume_stats <- volume %>%
                    .data$scenario_name,
                    .data$lid_area_fraction) %>%
   dplyr::mutate(runoff_LitrePerSqm = 1000 * .data$runoff_cbm) %>%
-  dplyr::summarise(runoff_LitrePerSqm_q00 = quantile(.data$runoff_LitrePerSqm, probs = 0),
+  dplyr::summarise(datetime_min = min(.data$tBeg),
+                datetime_max = max(.data$tEnd),
+                timeperiod_days = as.numeric(diff(c(datetime_min, datetime_max))),
+                timeperiod_years = timeperiod_days/365,
+                number_of_events = dplyr::n(),
+                events_per_year = number_of_events / timeperiod_years,
+                runoff_LitrePerSqm_q00 = quantile(.data$runoff_LitrePerSqm, probs = 0),
                 runoff_LitrePerSqm_q01 = quantile(.data$runoff_LitrePerSqm, probs = 0.01),
                 runoff_LitrePerSqm_q05 = quantile(.data$runoff_LitrePerSqm, probs = 0.05),
                 runoff_LitrePerSqm_q10 = quantile(.data$runoff_LitrePerSqm, probs = 0.10),
@@ -44,7 +52,9 @@ sel_cols <- c("zone_id",
               "lid_name_tidy",
               "scenario_name",
               "lid_area_fraction",
-              "max_total_runoff_mmPerHour")
+              "max_total_runoff_mmPerHour",
+              "tBeg",
+              "tEnd")
 
 peak_stats <- peak %>%
   dplyr::select(tidyselect::all_of(sel_cols)) %>%
@@ -52,7 +62,13 @@ peak_stats <- peak %>%
                   .data$lid_name_tidy,
                   .data$scenario_name,
                   .data$lid_area_fraction) %>%
-  dplyr::summarise(runoff_max_mmPerHour_q00 = quantile(.data$max_total_runoff_mmPerHour, probs = 0),
+  dplyr::summarise(datetime_min = min(.data$tBeg),
+                datetime_max = max(.data$tEnd),
+                timeperiod_days = as.numeric(diff(c(datetime_min, datetime_max))),
+                timeperiod_years = timeperiod_days/365,
+                number_of_events = dplyr::n(),
+                events_per_year = number_of_events / timeperiod_years,
+                runoff_max_mmPerHour_q00 = quantile(.data$max_total_runoff_mmPerHour, probs = 0),
                 runoff_max_mmPerHour_q01 = quantile(.data$max_total_runoff_mmPerHour, probs = 0.01),
                 runoff_max_mmPerHour_q05 = quantile(.data$max_total_runoff_mmPerHour, probs = 0.05),
                 runoff_max_mmPerHour_q10 = quantile(.data$max_total_runoff_mmPerHour, probs = 0.10),

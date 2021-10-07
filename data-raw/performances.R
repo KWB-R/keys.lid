@@ -41,13 +41,14 @@ performances <- br %>%
   dplyr::bind_rows(gr) %>%
   dplyr::bind_rows(pp)
 
-scenarios <- keys.lid::performances
+# scenarios <- keys.lid::performances
+#
+# performances <- scenarios[scenarios$lid_name_tidy == "bioretention_cell",] %>%
+#   dplyr::bind_rows(gr) %>%
+#   scenarios[scenarios$lid_name_tidy == "permeable_pavement",]
+# performances <- keys.lid::performances
 
-performances <- scenarios[scenarios$lid_name_tidy == "bioretention_cell",] %>%
-  dplyr::bind_rows(gr) %>%
-  scenarios[scenarios$lid_name_tidy == "permeable_pavement",]
-
-performances_event_percentiles <- get_event_percentiles(performances)
+performances_event_percentiles <- keys.lid::get_event_percentiles(performances)
 export_dir <- "."
 keys.lid::export_performances(export_dir = export_dir)
 path_wb <- file.path(export_dir, "swmm_lid-performances.xlsx")
