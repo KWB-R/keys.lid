@@ -72,6 +72,12 @@ openxlsx::saveWorkbook(wb = wb,
 ### Check different compression formats (as recommended by Rcmdcheck):
 ### https://cran.r-project.org/doc/manuals/r-release/R-exts.html#Data-in-packages
 
+## Quick fix for renaming "German" scenario names to "English"
+performances <- keys.lid::performances %>%
+  dplyr::mutate(scenario_name = kwb.utils::multiSubstitute(strings = .data$scenario_name,
+                                                           replacements = list("mulde_rigole" = "through-trench",
+                                                                               "mulde" = "through")))
+
 #usethis::use_data(performances, compress = "gzip", overwrite = TRUE) #44.6MB
 #usethis::use_data(performances, compress = "bzip2", overwrite = TRUE) #18.9MB
 usethis::use_data(performances, compress = "xz", overwrite = TRUE) #0.6MB

@@ -142,8 +142,9 @@ keys.lid::boxplot_vrr(lid = "bioretention_cell", zone_id = 2)
 **Zone 3**
 
 ```{r evaluate_performance_boxplot_vrr_bc_zone3, fig.height=bp_fig_height, fig.width=bp_fig_width}
+performances <- keys.lid::performances %>%  dplyr::filter(lid_area_fraction == 1)
+keys.lid::boxplot_vrr("bioretention_cell", zone_id = 3, performances = performances)
 
-keys.lid::boxplot_vrr(lid = "bioretention_cell", zone_id = 3)
 
 ```
 
@@ -159,8 +160,7 @@ keys.lid::boxplot_vrr(lid = "bioretention_cell", zone_id = 4)
 
 ```{r evaluate_performance_boxplot_vrr_bc_zone5, fig.height=bp_fig_height, fig.width=bp_fig_width}
 
-keys.lid::boxplot_vrr(lid = "bioretention_cell", zone_id = 5)
-
+keys.lid::boxplot_vrr("bioretention_cell", zone_id = 5, performances = performances)
 ```
 
 ##### Green Roof
@@ -185,7 +185,7 @@ keys.lid::boxplot_vrr(lid = "green_roof", zone_id = 2)
 
 ```{r evaluate_performance_boxplot_vrr_gr_zone3, fig.height=bp_fig_height, fig.width=bp_fig_width}
 
-keys.lid::boxplot_vrr(lid = "green_roof", zone_id = 3)
+keys.lid::boxplot_vrr(lid = "green_roof", zone_id = 3, performances = performances)
 
 ```
 
@@ -201,7 +201,8 @@ keys.lid::boxplot_vrr(lid = "green_roof", zone_id = 4)
 
 ```{r evaluate_performance_boxplot_vrr_gr_zone5, fig.height=bp_fig_height, fig.width=bp_fig_width}
 
-keys.lid::boxplot_vrr(lid = "green_roof", zone_id = 5)
+keys.lid::boxplot_vrr(lid = "green_roof", zone_id = 4, performances = performances)
+
 
 ```
 
@@ -227,7 +228,7 @@ keys.lid::boxplot_vrr(lid = "permeable_pavement", zone_id = 2)
 
 ```{r evaluate_performance_boxplot_vrr_pp_zone3, fig.height=bp_fig_height, fig.width=bp_fig_width}
 
-keys.lid::boxplot_vrr(lid = "permeable_pavement", zone_id = 3)
+keys.lid::boxplot_vrr(lid = "permeable_pavement", zone_id = 3, performances = performances)
 
 ```
 
@@ -243,7 +244,8 @@ keys.lid::boxplot_vrr(lid = "permeable_pavement", zone_id = 4)
 
 ```{r evaluate_performance_boxplot_vrr_pp_zone5, fig.height=bp_fig_height, fig.width=bp_fig_width}
 
-keys.lid::boxplot_vrr(lid = "permeable_pavement", zone_id = 5)
+keys.lid::boxplot_vrr(lid = "permeable_pavement", zone_id = 5, performances = performances)
+
 
 ```
 
