@@ -283,7 +283,7 @@ lid_50percent_table_by_zone %>%
                          position = ggplot2::position_dodge(.9)
                          ) + 
   ggplot2::labs(title = sprintf("Klimazone %s", climate_zone_id),
-                y = "J\u00E4hrlicher Regenr\u00FCckhaltanstieg je Prozent LID-Fl\u00E4chenanteil im Einzugsgebiet",
+                y = "% j\u00E4hrlicher Regenr\u00FCckhalt  / % LID-Fl\u00E4chenanteil",
                 x = "Designszenario",
                 fill = "LID") +
   ggplot2::theme_bw() +
@@ -319,5 +319,21 @@ lid_plots <- lapply(1:5, function(climate_zone_id) {
 
 ```
 
+<!-- ## VRR planning example (climate zone 3) -->
+
+<!-- ```{r lid_performance_planning_zone3, echo=TRUE, fig.height = 5, fig.width=7} -->
+
+<!-- catchment_share_sealed <- 0.7 #i.e. 70% -->
+<!-- catchment_share_unsealed <- 1 - catchment_share_sealed -->
 
 
+<!-- vrr_percent_unsealed <- 100 -->
+
+<!-- catchment_100percentage_sealed <- performances_without_lids %>%  -->
+<!--   dplyr::filter(.data$zone_id == 3, -->
+<!--                 .data$scenario_id == 1) %>%  -->
+<!--   dplyr::select(.data$zone_id,  -->
+<!--                 .data$year,  -->
+<!--                 .data$vrr_reference) -->
+
+<!-- ``` -->
