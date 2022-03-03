@@ -218,7 +218,6 @@ performances_lid <- performances %>%
   dplyr::left_join(performances_without_lids) %>% 
   dplyr::ungroup() %>% 
   dplyr::mutate(percent_lid_area = percent_lid_area, 
-                vrr_perpercent_catchment = vrr/(percent_lid_area/100), 
                 vrr_diff = vrr - vrr_reference,
                 vrr_diff_perpercent_catchment = vrr_diff/(percent_lid_area/100),
                 lid_name_tidy = kwb.utils::multiSubstitute(strings = .data$lid_name_tidy,
@@ -228,18 +227,16 @@ performances_lid <- performances %>%
                                                            "permeable_pavement" = "Durchl\u00E4ssige Bodenbel\u00E4ge")
                                                            )) %>% 
   dplyr::group_by(dplyr::across(tidyselect::all_of(group_cols))) %>% 
-  dplyr::summarize(vrr_perpercent_catchment_median = median(.data$vrr_perpercent_catchment),
-                   vrr_perpercent_catchment_sd = sd(.data$vrr_perpercent_catchment),
-                   vrr_median = median(.data$vrr), 
+  dplyr::summarize(vrr_median = median(.data$vrr), 
                    vrr_sd = sd(.data$vrr),     
                    vrr_reference_median = median(.data$vrr_reference), 
                    vrr_reference_sd = sd(.data$vrr_reference), 
                    vrr_diff_median = median(.data$vrr_diff),
                    vrr_diff_sd = sd(.data$vrr_diff),
-                   vrr_diff_perpercent_catchment_median = median(.data$vrr_diff_perpercent_catchment),
                    vrr_diff_perpercent_catchment_sd = sd(.data$vrr_diff_perpercent_catchment)
-                   ) %>% 
-  dplyr::arrange(dplyr::desc(.data$vrr_perpercent_catchment_median))
+                   ) %>%
+  dplyr::mutate(vrr_diff_perpercent_catchment_median = (.data$vrr_median - .data$vrr_reference_median)/(percent_lid_area/100)) %>% 
+  dplyr::arrange(dplyr::desc(.data$vrr_diff_perpercent_catchment_median))
 }
 
 lid_50percent_table <- create_lid_table(percent_lid_area = 50, 
