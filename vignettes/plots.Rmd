@@ -51,7 +51,7 @@ performances_without_lids <- performances %>%
 mycolors <- c(rev(RColorBrewer::brewer.pal(name="Reds", n = 6)),
               RColorBrewer::brewer.pal(name="Blues", n = 6))
 
-performances_without_lids %>%
+vrr_reference <- performances_without_lids %>%
   tidyr::unnest(.data$annual) %>%
   ggplot2::ggplot(mapping = ggplot2::aes(x = .data$zone_id,
                                          y = 100*.data$vrr)) +
@@ -75,9 +75,13 @@ performances_without_lids %>%
   ggplot2::theme(legend.position="top")
 
 ggplot2::ggsave("vrr_reference.jpg",
+                plot = vrr_reference,
                 scale = 1, 
                 width = 7, 
                 height = 5)
+
+
+
 
 ```
 
@@ -196,4 +200,124 @@ ggplot2::ggsave(filename = sprintf("vrr_lid_durchlaessige-bodenbelaege_%d-prozen
 
 
 ```
+
+
+## VRR increase by LIDs
+
+```{r lid_performance_compared_to_base, echo=TRUE, fig.height = 5, fig.width=7}
+
+
+create_lid_table <- function(percent_lid_area = 50,
+                             group_cols = c("zone_id", "lid_name_tidy", "scenario_id", "scenario_name", "percent_lid_area")) {
+
+performances_lid <- performances %>%  
+  dplyr::filter(.data$lid_name_tidy == "bioretention_cell" & .data$lid_area_fraction == percent_lid_area/100 |
+                .data$lid_name_tidy == "permeable_pavement" & .data$lid_area_fraction == percent_lid_area/100 |
+                .data$lid_name_tidy == "green_roof" & .data$lid_area_fraction == percent_lid_area/100) %>%  
+  tidyr::unnest(.data$annual) %>% 
+  dplyr::left_join(performances_without_lids) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::mutate(percent_lid_area = percent_lid_area, 
+                vrr_perpercent_catchment = vrr/(percent_lid_area/100), 
+                vrr_diff = vrr - vrr_reference,
+                vrr_diff_perpercent_catchment = vrr_diff/(percent_lid_area/100),
+                lid_name_tidy = kwb.utils::multiSubstitute(strings = .data$lid_name_tidy,
+                                                           replacements = list(
+                                                           "bioretention_cell" = "Versickerungsmulden",
+                                                           "green_roof" = "Gr\u00FCnd\u00E4cher",
+                                                           "permeable_pavement" = "Durchl\u00E4ssige Bodenbel\u00E4ge")
+                                                           )) %>% 
+  dplyr::group_by(dplyr::across(tidyselect::all_of(group_cols))) %>% 
+  dplyr::summarize(vrr_perpercent_catchment_median = median(.data$vrr_perpercent_catchment),
+                   vrr_perpercent_catchment_sd = sd(.data$vrr_perpercent_catchment),
+                   vrr_median = median(.data$vrr), 
+                   vrr_sd = sd(.data$vrr),     
+                   vrr_reference_median = median(.data$vrr_reference), 
+                   vrr_reference_sd = sd(.data$vrr_reference), 
+                   vrr_diff_median = median(.data$vrr_diff),
+                   vrr_diff_sd = sd(.data$vrr_diff),
+                   vrr_diff_perpercent_catchment_median = median(.data$vrr_diff_perpercent_catchment),
+                   vrr_diff_perpercent_catchment_sd = sd(.data$vrr_diff_perpercent_catchment)
+                   ) %>% 
+  dplyr::arrange(dplyr::desc(.data$vrr_perpercent_catchment_median))
+}
+
+lid_50percent_table <- create_lid_table(percent_lid_area = 50, 
+                                        group_cols = c("lid_name_tidy", "scenario_id", "scenario_name", "percent_lid_area"))
+lid_50percent_table_by_zone <- create_lid_table(percent_lid_area = 50,
+                                                group_cols = c("zone_id", "lid_name_tidy", "scenario_id", "scenario_name", "percent_lid_area"))
+
+
+
+lid_100percent_table <- create_lid_table(percent_lid_area = 100, 
+                                        group_cols = c("lid_name_tidy", "scenario_id", "scenario_name", "percent_lid_area"))
+lid_100percent_table_by_zone <- create_lid_table(percent_lid_area = 100,
+                                                group_cols = c("zone_id", "lid_name_tidy", "scenario_id", "scenario_name", "percent_lid_area"))
+
+lid_names <- unique(lid_50percent_table_by_zone$lid_name_tidy)
+
+
+plot_vrr_per_percent_lidarea <- function(climate_zone_id = 1) {
+
+lid_50percent_table_by_zone %>% 
+  dplyr::filter(.data$zone_id == climate_zone_id) %>% 
+  #dplyr::mutate(label = sprintf("Klimazone %s", .data$zone_id)) %>% 
+  ggplot2::ggplot(mapping = ggplot2::aes(x = forcats::fct_reorder(.data$scenario_name,
+                                                                  .data$vrr_diff_perpercent_catchment_median, 
+                                                                  .desc = FALSE),
+                                         y = .data$vrr_diff_perpercent_catchment_median, 
+                                         #col = .data$scenario_name,
+                                         fill = .data$lid_name_tidy)) +
+  ggplot2::scale_y_continuous(labels = scales::percent_format(scale = 1),
+                              breaks = seq(0,1,0.1),
+                              limits = c(0, 1)) +
+  ggplot2::coord_flip() +
+  #ggplot2::facet_wrap(~ label, ncol = 1) +
+  ggplot2::geom_bar(stat="identity", 
+                    #color="black",
+                    alpha = 0.5,
+                    position = ggplot2::position_dodge()) +
+  ggplot2::geom_errorbar(ggplot2::aes(ymin = .data$vrr_diff_perpercent_catchment_median - .data$vrr_diff_perpercent_catchment_sd, 
+                                      ymax = .data$vrr_diff_perpercent_catchment_median + .data$vrr_diff_perpercent_catchment_sd),
+                         width=.2,
+                         position = ggplot2::position_dodge(.9)
+                         ) + 
+  ggplot2::labs(title = sprintf("Klimazone %s", climate_zone_id),
+                y = "J\u00E4hrlicher Regenr\u00FCckhaltanstieg je Prozent LID-Fl\u00E4chenanteil im Einzugsgebiet",
+                x = "Designszenario",
+                fill = "LID") +
+  ggplot2::theme_bw() +
+  ggplot2::theme(legend.position="top")
+}
+
+lid_plots <- lapply(1:5, function(climate_zone_id) { plot_vrr_per_percent_lidarea(climate_zone_id)})
+
+lid_plots <- lapply(1:5, function(climate_zone_id) {
+  ggplot2::ggsave(filename = sprintf("lid_plot_zone%d.jpg", climate_zone_id),
+                plot = plot_vrr_per_percent_lidarea(climate_zone_id), 
+                width = 9,
+                height = 4.5)
+  })
+
+
+# pdff <- "lid_plots.pdf"
+# mp <- gridExtra::marrangeGrob(lid_plots, nrow=3, ncol=2)
+# ggplot2::ggsave(pdff,
+#                 plot = mp, 
+#                 width = 14,
+#                 height = 20, 
+#                 units = "cm")
+# 
+# ggpubr::ggarrange(lid_plots[[1]] + ggplot2::ggtitle("") + ggpubr::rremove("xy.text"), 
+#                   lid_plots[[2]] + ggplot2::ggtitle("") + ggpubr::rremove("xy.text"),   
+#                   lid_plots[[3]] + ggplot2::ggtitle("") + ggpubr::rremove("xy.text"),   
+#                   lid_plots[[4]] + ggplot2::ggtitle("") + ggpubr::rremove("xy.text"),  
+#                   lid_plots[[5]] + ggplot2::ggtitle("") + ggpubr::rremove("xy.text"),  
+#                   labels = sprintf("Klimazone %s", 1:5),
+#                   ncol = 2, 
+#                   nrow = 3)
+
+```
+
+
 
