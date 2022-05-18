@@ -33,7 +33,7 @@ for different LID design parameters and climatic boundary conditions (five diffe
 climate zones in China) documented in the [Scenarios](articles/scenarios.html) 
 article, which covers:
 
-1. **Generation of more than 400 SWMM model setups** (defined in `keys.lid::read_scenario()`), 
+1. **Generation of more than 400 SWMM model setups** (defined in `keys.lid::read_scenarios()`), 
 
 2. **Automatically run SWMM for all of them** from within R using `keys.lid::simulate_performances()` and finally 
 
