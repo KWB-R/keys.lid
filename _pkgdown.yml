@@ -6,10 +6,9 @@ authors:
     href: https://github.com/robetatis
   KEYS:
     href: https://www.kompetenz-wasser.de/en/forschung/projekte/keys
-    html: <img src='https://www.kompetenz-wasser.de/media/pages/forschung/projekte/keys/bb2d39dc7a-1639132760/keys-logo.png'
-      height='24' /
+    html: <img src='https://www.kompetenz-wasser.de/media/pages/forschung/projekte/keys/bb2d39dc7a-1639132760/keys-logo.png' alt='Project KEYS' height='24' />
   Kompetenzzentrum Wasser Berlin gGmbH (KWB):
-    href: http://www.kompetenz-wasser.de
+    href: https://www.kompetenz-wasser.de
     html: <img src='https://publications.kompetenz-wasser.de/img/KWB-Logo.svg' alt='KWB'
       width='72' />
 template:
