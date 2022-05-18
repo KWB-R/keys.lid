@@ -1,93 +1,93 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>/404.html</loc>
+    <loc>https://kwb-r.github.io/keys.lid/404.html</loc>
   </url>
   <url>
-    <loc>/LICENSE-text.html</loc>
+    <loc>https://kwb-r.github.io/keys.lid/LICENSE-text.html</loc>
   </url>
   <url>
-    <loc>/LICENSE.html</loc>
+    <loc>https://kwb-r.github.io/keys.lid/LICENSE.html</loc>
   </url>
   <url>
-    <loc>/articles/index.html</loc>
+    <loc>https://kwb-r.github.io/keys.lid/articles/index.html</loc>
   </url>
   <url>
-    <loc>/articles/plots.html</loc>
+    <loc>https://kwb-r.github.io/keys.lid/articles/plots.html</loc>
   </url>
   <url>
-    <loc>/articles/scenarios.html</loc>
+    <loc>https://kwb-r.github.io/keys.lid/articles/scenarios.html</loc>
   </url>
   <url>
-    <loc>/articles/sensitivity.html</loc>
+    <loc>https://kwb-r.github.io/keys.lid/articles/sensitivity.html</loc>
   </url>
   <url>
-    <loc>/articles/validation.html</loc>
+    <loc>https://kwb-r.github.io/keys.lid/articles/validation.html</loc>
   </url>
   <url>
-    <loc>/authors.html</loc>
+    <loc>https://kwb-r.github.io/keys.lid/authors.html</loc>
   </url>
   <url>
-    <loc>/index.html</loc>
+    <loc>https://kwb-r.github.io/keys.lid/index.html</loc>
   </url>
   <url>
-    <loc>/news/index.html</loc>
+    <loc>https://kwb-r.github.io/keys.lid/news/index.html</loc>
   </url>
   <url>
-    <loc>/reference/boxplot_runoff_max.html</loc>
+    <loc>https://kwb-r.github.io/keys.lid/reference/boxplot_runoff_max.html</loc>
   </url>
   <url>
-    <loc>/reference/boxplot_runoff_volume.html</loc>
+    <loc>https://kwb-r.github.io/keys.lid/reference/boxplot_runoff_volume.html</loc>
   </url>
   <url>
-    <loc>/reference/boxplot_vrr.html</loc>
+    <loc>https://kwb-r.github.io/keys.lid/reference/boxplot_vrr.html</loc>
   </url>
   <url>
-    <loc>/reference/computeVol.html</loc>
+    <loc>https://kwb-r.github.io/keys.lid/reference/computeVol.html</loc>
   </url>
   <url>
-    <loc>/reference/export_performances.html</loc>
+    <loc>https://kwb-r.github.io/keys.lid/reference/export_performances.html</loc>
   </url>
   <url>
-    <loc>/reference/extdata_file.html</loc>
+    <loc>https://kwb-r.github.io/keys.lid/reference/extdata_file.html</loc>
   </url>
   <url>
-    <loc>/reference/get_event_percentiles.html</loc>
+    <loc>https://kwb-r.github.io/keys.lid/reference/get_event_percentiles.html</loc>
   </url>
   <url>
-    <loc>/reference/index.html</loc>
+    <loc>https://kwb-r.github.io/keys.lid/reference/index.html</loc>
   </url>
   <url>
-    <loc>/reference/lidconfig_to_swmm.html</loc>
+    <loc>https://kwb-r.github.io/keys.lid/reference/lidconfig_to_swmm.html</loc>
   </url>
   <url>
-    <loc>/reference/makeRainfallRunoffEvents.html</loc>
+    <loc>https://kwb-r.github.io/keys.lid/reference/makeRainfallRunoffEvents.html</loc>
   </url>
   <url>
-    <loc>/reference/monthlyPattern.html</loc>
+    <loc>https://kwb-r.github.io/keys.lid/reference/monthlyPattern.html</loc>
   </url>
   <url>
-    <loc>/reference/performances.html</loc>
+    <loc>https://kwb-r.github.io/keys.lid/reference/performances.html</loc>
   </url>
   <url>
-    <loc>/reference/pipe.html</loc>
+    <loc>https://kwb-r.github.io/keys.lid/reference/pipe.html</loc>
   </url>
   <url>
-    <loc>/reference/plot_vrr_median.html</loc>
+    <loc>https://kwb-r.github.io/keys.lid/reference/plot_vrr_median.html</loc>
   </url>
   <url>
-    <loc>/reference/readObservations.html</loc>
+    <loc>https://kwb-r.github.io/keys.lid/reference/readObservations.html</loc>
   </url>
   <url>
-    <loc>/reference/readPredictions.html</loc>
+    <loc>https://kwb-r.github.io/keys.lid/reference/readPredictions.html</loc>
   </url>
   <url>
-    <loc>/reference/read_scenarios.html</loc>
+    <loc>https://kwb-r.github.io/keys.lid/reference/read_scenarios.html</loc>
   </url>
   <url>
-    <loc>/reference/simulate_performance.html</loc>
+    <loc>https://kwb-r.github.io/keys.lid/reference/simulate_performance.html</loc>
   </url>
   <url>
-    <loc>/reference/simulate_performances.html</loc>
+    <loc>https://kwb-r.github.io/keys.lid/reference/simulate_performances.html</loc>
   </url>
 </urlset>

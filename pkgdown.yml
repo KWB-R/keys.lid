@@ -1,10 +1,13 @@
 pandoc: 2.7.3
-pkgdown: 2.0.2
+pkgdown: 2.0.3
 pkgdown_sha: ~
 articles:
   plots: plots.html
   scenarios: scenarios.html
   sensitivity: sensitivity.html
   validation: validation.html
-last_built: 2022-03-02T10:04Z
+last_built: 2022-05-18T12:41Z
+urls:
+  reference: https://kwb-r.github.io/keys.lid/reference
+  article: https://kwb-r.github.io/keys.lid/articles
 
