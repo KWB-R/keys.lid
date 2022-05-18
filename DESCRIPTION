@@ -2,7 +2,7 @@ Package: keys.lid
 Title: R Package for Simulating the Impact of Different LIDs
     under Varying Climate Boundary Conditions on Annual Volume Rainfall
     Retention
-Version: 0.0.0.9000
+Version: 0.1.0
 Authors@R: 
     c(person(given = "Michael",
              family = "Rustler",
@@ -51,6 +51,7 @@ Suggests:
     car,
     covr,
     DT,
+    forcats,
     fs,
     knitr,
     rmarkdown
