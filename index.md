@@ -3,6 +3,7 @@
 [![codecov](https://codecov.io/github/KWB-R/keys.lid/branch/main/graphs/badge.svg)](https://codecov.io/github/KWB-R/keys.lid)
 [![Project Status](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
 [![CRAN_Status_Badge](https://www.r-pkg.org/badges/version/keys.lid)]()
+[![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.6560755.svg)](https://doi.org/10.5281/zenodo.6560755)
 
 R Package for Simulating the Impact of Different
 LIDs (Low Impact Development) under Varying Climate Boundary
