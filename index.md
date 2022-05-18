@@ -30,7 +30,7 @@ help(package = 'keys.lid')
 The R workflow for assessing the hydraulic/hydrological performance of 
 three low impact developments (`bioretention cells`, `green roofs`, `permeable pavements`) 
 for different LID design parameters and climatic boundary conditions (five different 
-climate zones in China) documented in the [Scenarios](../articles/scenarios.html) 
+climate zones in China) documented in the [Scenarios](articles/scenarios.html) 
 article, which covers:
 
 1. **Generation of more than 400 SWMM model setups** (defined in `keys.lid::read_scenario()`), 
