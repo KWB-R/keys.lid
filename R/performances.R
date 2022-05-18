@@ -3,7 +3,7 @@
 #' A dataset containing the performance of LIDs for different climate conditions
 #' created with R script in /data-raw/performances.R
 #'
-#' @format A nested tibble with 290 rows and 16 variables:
+#' @format A nested tibble with 575 rows and 16 variables:
 #' \describe{
 #'   \item{zone_id}{climate zone id}
 #'   \item{lid_name_tidy}{tidy LID name}

@@ -3,8 +3,6 @@
 #' @param lid_selected tibble with a selected LID as retrieved by \code{\link{read_scenarios}}
 #' @param lid_area_fraction fraction of LID in subcatchment (default: 0)
 #' @param catchment_area_m2 catchment area (default: 1000 m2)
-#' @param col_eventsep SWMM output column used for event separation (default:
-#' "total_rainfall")
 #' @param swmm_base_inp path to SWMM model to be used as template for modification
 #' (default: keys.lid::extdata_file("scenarios/models/model_template.inp"))
 #' @param swmm_climate_dir directory with climate data
@@ -42,7 +40,6 @@ simulate_performance <- function(
   lid_selected,
   lid_area_fraction = 0,
   catchment_area_m2 = 1000,
-  col_eventsep = "total_rainfall",
   swmm_base_inp = keys.lid::extdata_file("scenarios/models/model_template.inp"),
   swmm_climate_dir = keys.lid::extdata_file("rawdata/weather_sponge_regions"),
   swmm_exe = NULL,
@@ -145,23 +142,30 @@ simulate_performance <- function(
 
     results_system <- kwb.swmm::get_results(path_out = path_out_file,
                                             vIndex = c(1,4)) %>%
-      dplyr::mutate(total_runoff_mmPerHour = lps_to_mmPerHour(.data$total_runoff))
+      dplyr::rename(total_rainfall_mmPerHour = .data$total_rainfall,
+                    total_runoff_litrePerSecond = .data$total_runoff) %>%
+      dplyr::mutate(total_runoff_mmPerHour = lps_to_mmPerHour(.data$total_runoff_litrePerSecond)) %>%
+      dplyr::select(- .data$total_runoff_litrePerSecond)
 
     results_vrr <-  results_system %>%
       dplyr::mutate(year = lubridate::year(.data$datetime)) %>%
       dplyr::group_by(.data$year) %>%
-      dplyr::summarise(vrr = 1 - (sum(.data$total_runoff_mmPerHour) / sum(.data$total_rainfall)))
+      dplyr::summarise(vrr = 1 - (sum(.data$total_runoff_mmPerHour) / sum(.data$total_rainfall_mmPerHour)))
 
+    col_eventsep <- "total_rainfall_mmPerHour"
 
-    rainevent_stats_sum <- kwb.swmm::calculate_rainevent_stats(results_system,
+    rainevent_stats_mean <- kwb.swmm::calculate_rainevent_stats(results_system,
                                                                col_eventsep = col_eventsep,
-                                                               aggregation_function = "sum") %>%
-      dplyr::arrange(dplyr::desc(.data$sum_total_rainfall))
+                                                               aggregation_function = "mean") %>%
+      dplyr::mutate(rainfall_cbm = .data$dur * .data$mean_total_rainfall_mmPerHour/3600/1000,
+                    runoff_cbm = .data$dur * .data$mean_total_runoff_mmPerHour/3600/1000,
+                    vrr = 1 - runoff_cbm / rainfall_cbm) %>%
+      dplyr::arrange(dplyr::desc(.data$mean_total_rainfall_mmPerHour))
 
     rainevent_stats_max <- kwb.swmm::calculate_rainevent_stats(results_system,
                                                                col_eventsep = col_eventsep,
                                                                aggregation_function = "max") %>%
-      dplyr::arrange(dplyr::desc(.data$max_total_rainfall))
+      dplyr::arrange(dplyr::desc(.data$max_total_rainfall_mmPerHour))
 
 
     tibble::tibble(lid_name_tidy = unique(lid_selected$lid_name_tidy),
@@ -173,7 +177,7 @@ simulate_performance <- function(
                    lid_controls = list(lid_controls),
                    subcatchment = list(subcatchment),
                    annual = list(results_vrr),
-                   events_sum = list(rainevent_stats_sum),
+                   events_sum = list(rainevent_stats_mean),
                    events_max = list(rainevent_stats_max),
                    col_eventsep = col_eventsep,
                    model_inp = path_inp_file,

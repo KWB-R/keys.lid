@@ -10,20 +10,34 @@ Conditions in China on annual VRR (Volume Rainfall Retention).
 
 ## Installation
 
-For details on how to install KWB-R packages checkout our [installation tutorial](https://kwb-r.github.io/kwb.pkgbuild/articles/install.html).
+For installing the latest release of this R package run the following code below:
 
 ```r
-### Optionally: specify GitHub Personal Access Token (GITHUB_PAT)
-### See here why this might be important for you:
-### https://kwb-r.github.io/kwb.pkgbuild/articles/install.html#set-your-github_pat
+# Enable repository from kwb-r
+options(repos = c(
+  kwbr = 'https://kwb-r.r-universe.dev',
+  CRAN = 'https://cloud.r-project.org'))
+  
+# Download and install keys.lid in R
+install.packages('keys.lid')
 
-# Sys.setenv(GITHUB_PAT = "mysecret_access_token")
-
-# Install package "remotes" from CRAN
-if (! require("remotes")) {
-  install.packages("remotes", repos = "https://cloud.r-project.org")
-}
-
-# Install KWB package 'keys.lid' from GitHub
-remotes::install_github("KWB-R/keys.lid")
+# Browse the keys.lid manual pages
+help(package = 'keys.lid')
 ```
+
+## Workflow 
+
+The R workflow for assessing the hydraulic/hydrological performance of 
+three low impact developments (`bioretention cells`, `green roofs`, `permeable pavements`) 
+for different LID design parameters and climatic boundary conditions (five different 
+climate zones in China) documented in the [Scenarios](articles/scenarios.html) 
+article, which covers:
+
+1. **Generation of more than 400 SWMM model setups** (defined in `keys.lid::read_scenarios()`), 
+
+2. **Automatically run SWMM for all of them** from within R using `keys.lid::simulate_performances()` and finally 
+
+3. **Temporally aggregate** (i.e. `annual rainfall retention`) **and visualise the results**.
+
+
+

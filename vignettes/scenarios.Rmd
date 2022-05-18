@@ -12,7 +12,17 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+n_runs <- nrow(keys.lid::performances)
+seconds_per_run <- 30
+run_total <- n_runs * seconds_per_run / 3600
+run_total_hours <- round(run_total,0)
+run_total_minutes <- round(60*(run_total - run_total_hours),0) 
 
+vrr_fig_height <- 8.5
+vrr_fig_width <- 8.5
+
+bp_fig_height <- 7
+bp_fig_width <- 8.5
 #keys.lid::performances
 ```
 
@@ -39,48 +49,43 @@ DT::datatable(scenarios)
 The SWMM simulations (years: 2008 - 2019) and calculation of 
 performance metrics (volume rainfall retended, rainfall event sums/max) for four 
 LIDs with different parameterisations and for five different climate zones 
-in China (in total: 290 model runs) takes about 2h 20min (~ 30 seconds per model 
-run) on my laptop.
+in China (in total: `r n_runs` model runs, which takes about `r seconds_per_run` `seconds per run`, i.e. in total `r run_total_hours` hours  `r run_total_minutes` minutes on my laptop).
 
 ```{r simulate_performances, eval = FALSE}
+
+### takes about 2.5h for all four LIDs to simulate
+catchment_area_m2 <- 1000
+lid_area_fractions <- c(0,0.25,0.5,0.75,1)
 
 ### Bioretention Cell
 br <- keys.lid::simulate_performances(
   lid_selected = scenarios[scenarios$lid_name_tidy == "bioretention_cell",],
-  lid_area_fractions = c(0, 0.05, 0.1, 0.2),
-  catchment_area_m2 = 1000,
+  lid_area_fractions = lid_area_fractions,
+  catchment_area_m2 = catchment_area_m2,
   swmm_exe = paths$swmm_exe
 )
 
 ### Green Roof
 gr <- keys.lid::simulate_performances(
   lid_selected = scenarios[scenarios$lid_name_tidy == "green_roof",],
-  lid_area_fractions = c(0,1),
-  catchment_area_m2 = 1000,
+  lid_area_fractions = lid_area_fractions,
+  catchment_area_m2 = catchment_area_m2,
   swmm_exe = paths$swmm_exe
 )
 
 ### Permeable Pavement
 pp <- keys.lid::simulate_performances(
   lid_selected = scenarios[scenarios$lid_name_tidy == "permeable_pavement",],
-  lid_area_fractions = c(0, 1),
-  catchment_area_m2 = 1000,
-  swmm_exe = paths$swmm_exe
-)
-
-### Rain Barrel
-rb <- keys.lid::simulate_performances(
-  lid_selected = scenarios[scenarios$lid_name_tidy == "rain_barrel",],
-  lid_area_fractions = c(0, 0.1, 0.2, 0.4),
-  catchment_area_m2 = 1000,
+  lid_area_fractions = lid_area_fractions,
+  catchment_area_m2 = catchment_area_m2,
   swmm_exe = paths$swmm_exe
 )
 
 
 performances <- br %>%
   dplyr::bind_rows(gr) %>%
-  dplyr::bind_rows(pp) %>%
-  dplyr::bind_rows(rb)
+  dplyr::bind_rows(pp)
+
 ```
 
 ## Evaluate Performance
@@ -89,7 +94,7 @@ performances <- br %>%
 
 #### Bioretention Cell 
 
-```{r evaluate_performance_vrr_br, fig.height=7, fig.width=7}
+```{r evaluate_performance_vrr_br, fig.height=vrr_fig_height, fig.width=vrr_fig_width}
 
 keys.lid::plot_vrr_median("bioretention_cell")
 
@@ -97,7 +102,7 @@ keys.lid::plot_vrr_median("bioretention_cell")
 
 #### Green Roof 
 
-```{r evaluate_performance_vrr_gr, fig.height=7, fig.width=7}
+```{r evaluate_performance_vrr_gr, fig.height=vrr_fig_height, fig.width=vrr_fig_width}
 
 keys.lid::plot_vrr_median("green_roof")
 
@@ -105,29 +110,64 @@ keys.lid::plot_vrr_median("green_roof")
 
 #### Permeable Pavements 
 
-```{r evaluate_performance_vrr_pp, fig.height=7, fig.width=7}
+```{r evaluate_performance_vrr_pp, fig.height=vrr_fig_height, fig.width=vrr_fig_width}
 
 keys.lid::plot_vrr_median("permeable_pavement")
 
 ```
 
-#### Rain Barrel
-
-```{r evaluate_performance_vrr_rr, fig.height=7, fig.width=7}
-
-keys.lid::plot_vrr_median("rain_barrel")
-
-```
 
 ### Boxplots
 
-Example for LID **green roof** in **climate zones 1 and 5**
-
 #### Volume Rainfall Retended 
+
+##### Bioretention Cell
 
 **Zone 1**
 
-```{r evaluate_performance_boxplot_vrr_gr_zone1, fig.height=7, fig.width=7}
+```{r evaluate_performance_boxplot_vrr_bc_zone1, fig.height=bp_fig_height, fig.width=bp_fig_width}
+
+keys.lid::boxplot_vrr(lid = "bioretention_cell", zone_id = 1)
+
+```
+
+**Zone 2**
+
+```{r evaluate_performance_boxplot_vrr_bc_zone2, fig.height=bp_fig_height, fig.width=bp_fig_width}
+
+keys.lid::boxplot_vrr(lid = "bioretention_cell", zone_id = 2)
+
+```
+
+**Zone 3**
+
+```{r evaluate_performance_boxplot_vrr_bc_zone3, fig.height=bp_fig_height, fig.width=bp_fig_width}
+performances <- keys.lid::performances %>%  dplyr::filter(lid_area_fraction == 1)
+keys.lid::boxplot_vrr("bioretention_cell", zone_id = 3, performances = performances)
+
+
+```
+
+**Zone 4**
+
+```{r evaluate_performance_boxplot_vrr_bc_zone4, fig.height=bp_fig_height, fig.width=bp_fig_width}
+
+keys.lid::boxplot_vrr(lid = "bioretention_cell", zone_id = 4)
+
+```
+
+**Zone 5**
+
+```{r evaluate_performance_boxplot_vrr_bc_zone5, fig.height=bp_fig_height, fig.width=bp_fig_width}
+
+keys.lid::boxplot_vrr("bioretention_cell", zone_id = 5, performances = performances)
+```
+
+##### Green Roof
+
+**Zone 1**
+
+```{r evaluate_performance_boxplot_vrr_gr_zone1, fig.height=bp_fig_height, fig.width=bp_fig_width}
 
 keys.lid::boxplot_vrr(lid = "green_roof", zone_id = 1)
 
@@ -135,7 +175,7 @@ keys.lid::boxplot_vrr(lid = "green_roof", zone_id = 1)
 
 **Zone 2**
 
-```{r evaluate_performance_boxplot_vrr_gr_zone2, fig.height=7, fig.width=7}
+```{r evaluate_performance_boxplot_vrr_gr_zone2, fig.height=bp_fig_height, fig.width=bp_fig_width}
 
 keys.lid::boxplot_vrr(lid = "green_roof", zone_id = 2)
 
@@ -143,15 +183,15 @@ keys.lid::boxplot_vrr(lid = "green_roof", zone_id = 2)
 
 **Zone 3**
 
-```{r evaluate_performance_boxplot_vrr_gr_zone3, fig.height=7, fig.width=7}
+```{r evaluate_performance_boxplot_vrr_gr_zone3, fig.height=bp_fig_height, fig.width=bp_fig_width}
 
-keys.lid::boxplot_vrr(lid = "green_roof", zone_id = 3)
+keys.lid::boxplot_vrr(lid = "green_roof", zone_id = 3, performances = performances)
 
 ```
 
 **Zone 4**
 
-```{r evaluate_performance_boxplot_vrr_gr_zone4, fig.height=7, fig.width=7}
+```{r evaluate_performance_boxplot_vrr_gr_zone4, fig.height=bp_fig_height, fig.width=bp_fig_width}
 
 keys.lid::boxplot_vrr(lid = "green_roof", zone_id = 4)
 
@@ -159,9 +199,53 @@ keys.lid::boxplot_vrr(lid = "green_roof", zone_id = 4)
 
 **Zone 5**
 
-```{r evaluate_performance_boxplot_vrr_gr_zone5, fig.height=7, fig.width=7}
+```{r evaluate_performance_boxplot_vrr_gr_zone5, fig.height=bp_fig_height, fig.width=bp_fig_width}
 
-keys.lid::boxplot_vrr(lid = "green_roof", zone_id = 5)
+keys.lid::boxplot_vrr(lid = "green_roof", zone_id = 4, performances = performances)
+
+
+```
+
+##### Permeable Pavement
+
+**Zone 1**
+
+```{r evaluate_performance_boxplot_vrr_pp_zone1, fig.height=bp_fig_height, fig.width=bp_fig_width}
+
+keys.lid::boxplot_vrr(lid = "permeable_pavement", zone_id = 1)
+
+```
+
+**Zone 2**
+
+```{r evaluate_performance_boxplot_vrr_pp_zone2, fig.height=bp_fig_height, fig.width=bp_fig_width}
+
+keys.lid::boxplot_vrr(lid = "permeable_pavement", zone_id = 2)
+
+```
+
+**Zone 3**
+
+```{r evaluate_performance_boxplot_vrr_pp_zone3, fig.height=bp_fig_height, fig.width=bp_fig_width}
+
+keys.lid::boxplot_vrr(lid = "permeable_pavement", zone_id = 3, performances = performances)
+
+```
+
+**Zone 4**
+
+```{r evaluate_performance_boxplot_vrr_pp_zone4, fig.height=bp_fig_height, fig.width=bp_fig_width}
+
+keys.lid::boxplot_vrr(lid = "permeable_pavement", zone_id = 4)
+
+```
+
+**Zone 5**
+
+```{r evaluate_performance_boxplot_vrr_pp_zone5, fig.height=bp_fig_height, fig.width=bp_fig_width}
+
+keys.lid::boxplot_vrr(lid = "permeable_pavement", zone_id = 5, performances = performances)
+
 
 ```
 
@@ -169,14 +253,14 @@ keys.lid::boxplot_vrr(lid = "green_roof", zone_id = 5)
 
 **Zone 1**
 
-```{r evaluate_performance_boxplot_runoff_max_gr_zone1, fig.height=7, fig.width=7}
+```{r evaluate_performance_boxplot_runoff_max_gr_zone1, fig.height=bp_fig_height, fig.width=bp_fig_width}
 
 keys.lid::boxplot_runoff_max(lid = "green_roof", zone_id = 1)
 
 ```
 **Zone 5**
 
-```{r evaluate_performance_boxplot_runoff_max_gr_zone5, fig.height=7, fig.width=7}
+```{r evaluate_performance_boxplot_runoff_max_gr_zone5, fig.height=bp_fig_height, fig.width=bp_fig_width}
 
 keys.lid::boxplot_runoff_max(lid = "green_roof", zone_id = 5)
 
@@ -186,15 +270,23 @@ keys.lid::boxplot_runoff_max(lid = "green_roof", zone_id = 5)
 
 **Zone 1**
 
-```{r evaluate_performance_boxplot_runoff_volume_gr_zone1, fig.height=7, fig.width=7}
+```{r evaluate_performance_boxplot_runoff_volume_gr_zone1, fig.height=bp_fig_height, fig.width=bp_fig_width}
 
 keys.lid::boxplot_runoff_volume(lid = "green_roof", zone_id = 1)
 
 ```
 **Zone 5**
 
-```{r evaluate_performance_boxplot_runoff_volume_gr_zone5, fig.height=7, fig.width=7}
+```{r evaluate_performance_boxplot_runoff_volume_gr_zone5, fig.height=bp_fig_height, fig.width=bp_fig_width}
 
 keys.lid::boxplot_runoff_volume(lid = "green_roof", zone_id = 5)
+
+```
+
+## Export Results to Excel
+
+```{r export_results_to_excel, eval = FALSE}
+
+keys.lid::export_performances()
 
 ```

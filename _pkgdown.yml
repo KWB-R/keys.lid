@@ -1,19 +1,25 @@
+url: https://kwb-r.github.io/keys.lid
 authors:
   Michael Rustler:
     href: https://mrustl.de
   Roberto Tatis-Muvdi:
     href: https://github.com/robetatis
   KEYS:
-    href: https://www.kompetenz-wasser.de/en/project/keys/
-    html: <img src='https://www.kompetenz-wasser.de/wp-content/uploads/2018/09/keys-logo.png'
-      height='24' /
+    href: https://www.kompetenz-wasser.de/en/forschung/projekte/keys
+    html: <img src='https://www.kompetenz-wasser.de/media/pages/forschung/projekte/keys/bb2d39dc7a-1639132760/keys-logo.png' alt='Project KEYS' height='24' />
   Kompetenzzentrum Wasser Berlin gGmbH (KWB):
-    href: http://www.kompetenz-wasser.de
-    html: <img src='http://www.kompetenz-wasser.de/wp-content/uploads/2017/08/cropped-logo-kwb_klein-new.png'
-      height='24' />
+    href: https://www.kompetenz-wasser.de
+    html: <img src='https://publications.kompetenz-wasser.de/img/KWB-Logo.svg' alt='KWB'
+      width='72' />
 template:
-  params:
-    bootswatch: cerulean
+  bootstrap: 5
+  bootswatch: cerulean
+  bslib:
+    bg: '#ffffff'
+    fg: '#000000'
+    primary: '#007aff'
+    border-radius: 0.5rem
+    btn-border-radius: 0.25rem
 development:
   mode: auto
 
